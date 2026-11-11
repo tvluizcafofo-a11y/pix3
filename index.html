@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<!-- ============================================================
+     PIX3 — GERADOR + RECEBEDOR INTEGRADO
+     Versão: 2.0.0
+     Pasta:  Download/pix3/
+     Arquivo JSON: pix_recebidos.json (gravado pelo MacroDroid)
+     ============================================================ -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b6b3a">
+<meta name="color-scheme" content="light only">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PIX3 — Recebimentos + Monitor</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ============================================================
+   ESTILO — BASE (gerador)
+   ============================================================ */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f3f5f7; color: #17202a; }
+header { background: #0b6b3a; color: #fff; padding: 16px 16px 14px; text-align: center; position: relative; }
+header h1 { margin: 0 0 4px; font-size: 25px; color: #fff; }
+header h1 .icone { margin-right: 10px; }
+header p { margin: 0; opacity: .9; font-size: 14px; color: #fff; }
+main { max-width: 820px; margin: 18px auto; padding: 0 12px; }
+.card { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 3px 14px #00000012; color: #17202a; }
+h2 { margin: 0 0 15px; font-size: 19px; color: #17202a; }
+label { display: block; font-weight: bold; margin: 12px 0 6px; color: #17202a; }
+input, select, button, textarea { width: 100%; font: inherit; border-radius: 10px; background: #fff; color: #17202a; border: 1px solid #cbd2d9; }
+input:focus, textarea:focus { outline: 2px solid #0b6b3a; border-color: transparent; }
+input#valor { font-size: 24px; padding: 16px 14px; text-align: center; font-weight: bold; letter-spacing: 1px; border-width: 2px; }
+textarea { resize: vertical; min-height: 72px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+button { border: 0; padding: 13px 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.primary { background: #0b6b3a; color: #fff; }
+.primary:hover { background: #095a31; }
+.secondary { background: #e8f2ed; color: #0b6b3a; }
+.secondary:hover { background: #d4e6dc; }
+.danger { background: #fdeaea; color: #a42020; }
+.danger:hover { background: #fccccc; }
+.result { text-align: center; display: none; background: #fff; }
+#qrcode-wrapper { position: relative; display: inline-block; padding: 16px; background: #fff; border-radius: 16px; border: 4px solid #0b6b3a; box-shadow: 0 4px 20px rgba(11,107,58,0.2); margin: 8px auto; }
+#qrcode { display: block; }
+#qrcode img, #qrcode canvas { max-width: 100%; height: auto; display: block; }
+#qrcode-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; border-radius: 10px; background: #fff; padding: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5; }
+#qrcode-icon img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; display: block; }
+.valor { font-size: 31px; font-weight: bold; color: #0b6b3a; margin: 10px; }
+.copybox { word-break: break-all; background: #f4f6f8; padding: 12px; border-radius: 10px; text-align: left; font-size: 13px; color: #17202a; }
+.status { margin-top: 10px; text-align: center; font-weight: bold; }
+.small { font-size: 12px; color: #68737d; }
+.resumo { background: #f7faf8; padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; color: #17202a; }
+.resumo .info { font-size: 14px; color: #17202a; flex: 1; }
+.resumo .info strong { display: inline-block; min-width: 60px; }
+.resumo .info .chave-mascarada { cursor: help; border-bottom: 1px dashed #68737d; }
+.resumo .btn-edit { background: transparent; border: 1px solid #0b6b3a; color: #0b6b3a; padding: 6px 14px; border-radius: 20px; font-weight: bold; cursor: pointer; margin: 0; font-size: 13px; opacity: 1; pointer-events: auto; }
+.resumo .btn-edit:hover { background: #d4e6dc; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal { background: #fff; max-width: 700px; width: 100%; border-radius: 20px; padding: 24px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); color: #17202a; }
+.modal h2 { margin-top: 0; color: #17202a; }
+.modal .btn-group { display: flex; gap: 12px; }
+.modal .btn-group button { flex: 1; }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+#modalAlert, #modalConfirm, #modalPrompt { z-index: 1200; }
+
+.lista-chaves { margin: 12px 0; }
+.item-chave { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #e8edf2; background: #fafcff; border-radius: 8px; margin-bottom: 6px; color: #17202a; }
+.item-chave .chave-texto { font-size: 14px; color: #17202a; flex: 1; margin: 0 10px; word-break: break-all; }
+.item-chave .acoes-chave { display: flex; gap: 6px; align-items: center; }
+.item-chave .acoes-chave button { background: #f4f6f8; border: 1px solid #cbd2d9; padding: 7px 11px; font-size: 14px; border-radius: 8px; cursor: pointer; margin: 0; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; }
+.item-chave .acoes-chave .editar { color: #0b6b3a; }
+.item-chave .acoes-chave .editar:hover { background: #e8f2ed; border-color: #0b6b3a; }
+.item-chave .acoes-chave .excluir { color: #a42020; }
+.item-chave .acoes-chave .excluir:hover { background: #fdeaea; border-color: #a42020; }
+.item-chave .selecionar { font-size: 22px; cursor: pointer; color: #cbd2d9; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; transition: all 0.15s; flex-shrink: 0; }
+.item-chave .selecionar:hover { background: #e8f2ed; color: #0b6b3a; }
+.item-chave .selecionar.ativa { color: #0b6b3a; }
+.chave-input-group { display: flex; gap: 8px; margin-top: 8px; align-items: stretch; }
+.chave-input-group .prefixo-chave { display: flex; align-items: center; padding: 0 14px; background: #e8f2ed; color: #0b6b3a; font-weight: bold; border-radius: 10px; border: 1px solid #cbd2d9; font-size: 16px; white-space: nowrap; }
+.chave-input-group .prefixo-chave.oculto { display: none; }
+.chave-input-group input { flex: 1; padding: 12px 14px; margin: 0; min-width: 0; font-size: 15px; }
+.chave-input-group .btn-add { margin: 0; padding: 10px 18px; width: auto; display: flex; align-items: center; gap: 8px; font-size: 15px; white-space: nowrap; }
+.chave-input-group .btn-add i { font-size: 16px; color: #fff; }
+
+.label-tipo-chave { display: block; font-weight: bold; margin: 12px 0 6px; color: #17202a; font-size: 14px; }
+.tipo-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+.tipo-opcao { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 4px; background: #f4f6f8; border: 2px solid #cbd2d9; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: bold; color: #68737d; margin: 0; transition: all 0.15s; line-height: 1.1; }
+.tipo-opcao i { font-size: 18px; }
+.tipo-opcao:hover { background: #e8f2ed; border-color: #0b6b3a; color: #0b6b3a; }
+.tipo-opcao.active { background: #0b6b3a; border-color: #0b6b3a; color: #fff; }
+.tipo-opcao.active i { color: #fff; }
+
+.dica-chave { font-size: 12px; color: #68737d; margin: 8px 0 0; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
+.dica-chave i { color: #0b6b3a; margin-top: 2px; font-size: 13px; }
+
+.secao-chaves { border-top: 2px solid #e8edf2; padding-top: 16px; margin-top: 16px; }
+.botoes-topo { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.botoes-topo button { width: auto; padding: 10px 20px; margin: 0; }
+.btn-pequeno { padding: 6px 14px; font-size: 13px; margin: 0; }
+.filtros { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 16px; }
+.filtros .grupo { flex: 1 1 160px; }
+.filtros .grupo label { margin: 0 0 4px; font-size: 13px; color: #68737d; }
+.filtros .grupo input { padding: 8px 10px; }
+.filtros .grupo button { margin: 0; padding: 8px 12px; font-size: 13px; }
+.item-recebimento { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #e8edf2; background: #fafcff; border-radius: 8px; margin-bottom: 6px; color: #17202a; }
+.item-recebimento .info { display: flex; flex-wrap: wrap; gap: 10px; font-size: 14px; color: #17202a; }
+.item-recebimento .info .data { color: #68737d; min-width: 100px; }
+.item-recebimento .info .valor { font-weight: bold; color: #0b6b3a; }
+.item-recebimento .info .descricao { color: #17202a; }
+.item-recebimento .status { font-size: 13px; font-weight: bold; padding: 4px 12px; border-radius: 20px; }
+.status-pendente { background: #fef6e0; color: #a67c00; }
+.status-pago { background: #dff0d8; color: #1e7e34; }
+.item-recebimento .acoes button { margin: 0 0 0 8px; padding: 4px 12px; font-size: 13px; }
+.sem-dados { text-align: center; color: #68737d; padding: 20px; }
+.total { text-align: right; font-weight: bold; font-size: 16px; margin-top: 10px; border-top: 2px solid #0b6b3a; padding-top: 10px; color: #17202a; }
+
+.primary:disabled { background: #a0b8ac; color: #fff; cursor: not-allowed; opacity: 0.6; }
+.primary:disabled:hover { background: #a0b8ac; }
+
+.senha-modal .modal { max-width: 420px; }
+.senha-modal .modal p { color: #68737d; margin: 4px 0 12px; }
+.senha-modal .modal .erro-senha { color: #a42020; font-size: 14px; margin-top: 6px; display: none; }
+.senha-modal .modal .erro-senha.visible { display: block; }
+.senha-modal .modal input { margin-bottom: 10px; padding: 13px 14px; font-size: 15px; min-height: 48px; }
+.senha-modal .modal .btn-group { margin-top: 6px; }
+
+.link-esqueci { display: block; width: 100%; margin-top: 10px; padding: 8px; background: none; border: none; color: #0b6b3a; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: underline; text-underline-offset: 3px; }
+.link-esqueci:hover { color: #095a31; }
+
+.codigo-recuperacao-display { background: #f4f6f8; border: 2px dashed #0b6b3a; border-radius: 12px; padding: 20px 12px; text-align: center; font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; letter-spacing: 3px; color: #0b6b3a; margin: 16px 0; user-select: all; word-break: break-all; }
+
+.divisor-recuperacao { display: flex; align-items: center; text-align: center; margin: 18px 0 14px; color: #68737d; font-size: 12px; font-weight: bold; }
+.divisor-recuperacao::before, .divisor-recuperacao::after { content: ''; flex: 1; border-bottom: 1px solid #cbd2d9; }
+.divisor-recuperacao span { padding: 0 12px; }
+
+.aviso-reset { background: #fef6e0; border-left: 4px solid #f1b04a; padding: 12px 14px; border-radius: 8px; margin-bottom: 10px; }
+.aviso-reset p { margin: 0 0 6px; }
+.aviso-reset p:last-of-type { margin-bottom: 10px; }
+.aviso-reset.danger-box { background: #fdeaea; border-left-color: #a42020; }
+
+.contato-footer { text-align: center; padding: 10px 16px 30px; color: #68737d; font-size: 13px; line-height: 1.6; }
+.contato-footer a { color: #0b6b3a; font-weight: bold; text-decoration: none; }
+.contato-footer a:hover { text-decoration: underline; }
+
+.copy-feedback { min-height: 22px; margin-top: 12px; text-align: center; font-weight: bold; font-size: 14px; transition: opacity 0.2s; }
+.copy-feedback.success { color: #0b6b3a; }
+.copy-feedback.error { color: #a42020; }
+
+.tutorial .modal { max-width: 500px; }
+.tutorial .modal ul { padding-left: 20px; }
+.tutorial .modal li { margin: 8px 0; }
+.tutorial .modal .icone { font-size: 28px; text-align: center; margin-bottom: 6px; }
+
+@media (max-width: 480px) {
+    .tipo-selector { grid-template-columns: repeat(2, 1fr); }
+    .chave-input-group { flex-wrap: wrap; }
+    .chave-input-group .btn-add { width: 100%; justify-content: center; }
+}
+
+/* ============================================================
+   ESTILO — MONITOR (novo)
+   ============================================================ */
+.status-monitor {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px;
+  background: #f7faf8; margin-bottom: 12px;
+  font-size: 13px; color: #17202a;
+  border-left: 4px solid #cbd2d9;
+}
+.status-monitor .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-monitor .dot-amarelo { background: #f1b04a; animation: pulse 1.5s infinite; }
+.status-monitor .dot-verde { background: #1e7e34; }
+.status-monitor .dot-vermelho { background: #a42020; }
+.status-monitor .dot-cinza { background: #cbd2d9; }
+.status-monitor .conteudo { flex: 1; }
+.status-monitor .conteudo strong { display: block; font-size: 13px; }
+.status-monitor .conteudo .small { font-size: 11px; color: #68737d; }
+.status-monitor .btn-testar {
+  background: transparent; border: 1px solid #cbd2d9; color: #68737d;
+  padding: 4px 10px; border-radius: 6px; font-size: 11px;
+  cursor: pointer; margin: 0; width: auto;
+}
+.status-monitor .btn-testar:hover { background: #e8f2ed; color: #0b6b3a; border-color: #0b6b3a; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ============================================================
+   ESTILO — MODAL DE PIX RECEBIDO (novo)
+   ============================================================ */
+.pix-modal-overlay {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+  z-index: 3000; justify-content: center; align-items: center; padding: 20px;
+}
+.pix-modal-overlay.active { display: flex; }
+.pix-card {
+  background: #fff; border-radius: 24px; max-width: 400px; width: 100%;
+  overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  animation: pixPop 0.4s ease;
+}
+@keyframes pixPop {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pix-card-header {
+  background: linear-gradient(135deg, #00a884, #00795f);
+  color: #fff; padding: 24px 20px 30px; text-align: center;
+}
+.pix-card-header .pix-check {
+  width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%;
+  background: rgba(255,255,255,.2); display: flex; align-items: center;
+  justify-content: center; font-size: 32px;
+}
+.pix-card-header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+.pix-card-header p { margin: 4px 0 0; font-size: 13px; opacity: .9; }
+.pix-card-body { padding: 0 20px 22px; margin-top: -20px; }
+.pix-valor-box {
+  background: #f0fdf8; border: 1px solid #b9f0dd; border-radius: 16px;
+  padding: 16px; text-align: center; margin-bottom: 16px;
+}
+.pix-valor-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px;
+  color: #6b7280; font-weight: 600;
+}
+.pix-valor-grande {
+  font-size: 34px; font-weight: 800; color: #00795f; margin-top: 4px;
+  letter-spacing: -1px;
+}
+.pix-info-row {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 10px 4px; border-bottom: 1px solid #f1f5f9; font-size: 14px;
+}
+.pix-info-row:last-of-type { border-bottom: none; }
+.pix-info-row span { color: #6b7280; font-weight: 500; }
+.pix-info-row strong { color: #111827; font-weight: 600; text-align: right; }
+.pix-status-casamento {
+  margin: 12px 0 16px; padding: 10px 12px; border-radius: 10px;
+  font-size: 13px; text-align: center; font-weight: 600;
+}
+.pix-status-casamento.ok { background: #ecfdf5; color: #065f46; border-left: 4px solid #00a884; }
+.pix-status-casamento.avulso { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+
+/* ============================================================
+   ESTILO — APRENDER NOVO BANCO (do pix.html)
+   ============================================================ */
+#modalAprender .modal textarea { font-family: monospace; font-size: 12px; min-height: 80px; }
+.previewAprender {
+  margin: 12px 0; padding: 12px 14px; border-radius: 10px;
+  font-size: 13px; line-height: 1.7;
+}
+.previewAprender.ok { background: #ecfdf5; border-left: 4px solid #00a884; color: #065f46; }
+.previewAprender.erro { background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; }
+.previewAprender .campo { display: flex; justify-content: space-between; padding: 3px 0; }
+.previewAprender .campo strong { color: #00795f; }
+.listaAprendidos { list-style: none; padding: 0; margin: 16px 0 0; border-top: 1px solid #eef2f7; padding-top: 12px; }
+.listaAprendidos li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: #f7faf8; border-radius: 8px;
+  margin-bottom: 6px; font-size: 13px; gap: 8px;
+}
+.listaAprendidos .nomeItem { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.listaAprendidos .acoes-lista { display: flex; gap: 6px; flex-shrink: 0; }
+.listaAprendidos .btn-edit {
+  background: #e8f2ed; color: #0b6b3a; border: 1px solid #0b6b3a;
+  padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; font-family: inherit; font-weight: 600;
+}
+.listaAprendidos .btn-del {
+  background: #fdeaea; color: #a42020; border: 1px solid #a42020;
+  padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; font-family: inherit; font-weight: 600;
+}
+.listaAprendidos .vazio { color: #6b7280; font-size: 13px; text-align: center; padding: 8px; }
+#bannerEdicao {
+  display: none; background: #fef3c7; border-left: 4px solid #f59e0b;
+  padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;
+  font-size: 13px; color: #92400e; font-weight: 600;
+}
+#bannerEdicao.ativo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#bannerEdicao button {
+  background: #f59e0b; color: #fff; border: none;
+  padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; font-family: inherit; font-weight: 700;
+}
+.secaoBackup { margin-top: 20px; padding-top: 14px; border-top: 2px solid #eef2f7; }
+.secaoBackup .tituloSecao { font-weight: 700; font-size: 13px; margin-bottom: 6px; color: #111827; }
+.infoBackup { margin-top: 10px; padding: 10px 12px; background: #f7faf8; border-radius: 8px; font-size: 12px; color: #4b5563; line-height: 1.6; }
+.infoBackup .alerta { color: #b45309; font-weight: 600; }
+.infoBackup .ok { color: #00795f; font-weight: 600; }
+
+/* ============================================================
+   ESTILO — DEBUG (rodapé discreto)
+   ============================================================ */
+#debug {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace;
+  font-size: 10px; padding: 4px 8px; z-index: 9998;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: none;
+}
+#debug.visivel { display: block; }
+#debug.erro { color: #ff5a5a; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header>
+  <h1 id="headerTitulo">
+    <span class="icone">💳</span>
+    <span id="tituloCabecalho">PIX3 — Recebimentos</span>
+  </h1>
+  <p id="headerSubtitulo">Gerencie cobranças e monitore recebimentos</p>
+</header>
+
+<main>
+  <!-- ============================================================
+       TELA PRINCIPAL — RESUMO + MONITOR + NOVA COBRANÇA
+       ============================================================ -->
+  <section class="card" id="telaPrincipal">
+    <div id="resumoRecebedor"></div>
+
+    <!-- Monitor de Pix (novo) -->
+    <div id="statusMonitor" class="status-monitor">
+      <span class="dot dot-amarelo" id="monitorDot"></span>
+      <div class="conteudo">
+        <strong id="monitorTitulo">Iniciando monitor...</strong>
+        <span class="small" id="monitorDetalhe">Aguardando primeira leitura</span>
+      </div>
+      <button class="btn-testar" onclick="simularPixTeste()" title="Simular um Pix para testar">🧪 Testar</button>
+    </div>
+
+    <h2>💰 Nova cobrança</h2>
+    <label for="valor">Valor a receber (R$)</label>
+    <input id="valor" inputmode="decimal" placeholder="0,00" oninput="formatarValor(this)">
+    <label for="descricaoCobranca">Descrição desta cobrança (opcional)</label>
+    <input id="descricaoCobranca" maxlength="72" placeholder="Ex.: Venda / serviço">
+    <button class="primary" onclick="gerarPix()">⚡ Gerar QR Code PIX</button>
+    <div id="recebStatus" class="status"></div>
+  </section>
+
+  <!-- ============================================================
+       BOTÕES DE NAVEGAÇÃO
+       ============================================================ -->
+  <div class="botoes-topo">
+    <button class="secondary" onclick="abrirTutorial()">❓ Ajuda</button>
+    <button class="secondary" onclick="abrirModalRelatorios()">📊 Relatórios</button>
+    <button class="secondary" onclick="abrirAprenderBanco()">🧠 Bancos</button>
+  </div>
+
+  <!-- ============================================================
+       RESULTADO DO QR CODE
+       ============================================================ -->
+  <section id="resultado" class="card result">
+    <h2>📲 Pagamento PIX</h2>
+    <div class="valor" id="valorExibido">R$ 0,00</div>
+    <div id="qrcode-wrapper">
+      <div id="qrcode"></div>
+      <div id="qrcode-icon">
+        <img src="icon-192.png" alt="Logo" id="qrcodeIconImg">
+      </div>
+    </div>
+    <p><b>Aponte a câmera do celular para o QR Code</b></p>
+    <button class="secondary" onclick="copiarPix()">📋 Copiar PIX Copia e Cola</button>
+    <button class="secondary" onclick="compartilharPix()">📤 Compartilhar código PIX</button>
+    <div id="copyFeedback" class="copy-feedback" role="status" aria-live="polite"></div>
+    <p class="small">O recebimento será detectado automaticamente e casado com esta cobrança.</p>
+  </section>
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="contato-footer">
+  Qualquer dúvida ou sugestão, envie um e-mail para<br>
+  <a href="mailto:lumsdeveloper6@gmail.com">lumsdeveloper6@gmail.com</a>
+  <div style="margin-top: 14px; font-size: 11px; color: #68737d;">
+    Versão <strong id="versaoAtual">…</strong>
+    &nbsp;·&nbsp;
+    <a href="#" onclick="verificarAtualizacao(false, this); return false;" style="color: #0b6b3a;">Verificar atualização</a>
+    &nbsp;·&nbsp;
+    <a href="#" onclick="forcarRecarregar(); return false;" style="color: #0b6b3a;">Recarregar sem cache</a>
+  </div>
+</footer>
+
+<!-- ============================================================
+     MODAL GERENCIAR
+     ============================================================ -->
+<div class="modal-overlay" id="modalGerenciar">
+  <div class="modal">
+    <h2>⚙️ Gerenciar recebedor e chaves</h2>
+    <p class="small">Os dados ficam salvos apenas neste aparelho.</p>
+    <label for="modalHeader">Título do cabeçalho (opcional)</label>
+    <input id="modalHeader" maxlength="50" placeholder="Ex.: Minha Loja - PIX" value="PIX3 — Recebimentos">
+    <label for="modalNome">Nome do recebedor *</label>
+    <input id="modalNome" maxlength="25" placeholder="Ex.: JOAO DA SILVA">
+    <div class="row">
+      <div><label for="modalCidade">Cidade *</label><input id="modalCidade" maxlength="15" placeholder="Ex.: SAO PAULO"></div>
+      <div><label for="modalTxid">Identificação (TXID)</label><input id="modalTxid" maxlength="25" value="***"></div>
+    </div>
+    <label for="modalDescricao">Descrição padrão (opcional)</label>
+    <textarea id="modalDescricao" maxlength="72" placeholder="Ex.: Pagamento de produtos"></textarea>
+    <div class="secao-chaves">
+      <h3 style="margin:0 0 10px;">🔑 Chaves PIX</h3>
+      <div id="listaChaves" class="lista-chaves"></div>
+      <label class="label-tipo-chave">Tipo de chave</label>
+      <div class="tipo-selector" id="tipoSelector">
+        <button type="button" class="tipo-opcao active" data-tipo="telefone" onclick="selecionarTipoChave('telefone')">
+          <i class="fas fa-mobile-alt"></i><span>Telefone</span>
+        </button>
+        <button type="button" class="tipo-opcao" data-tipo="email" onclick="selecionarTipoChave('email')">
+          <i class="fas fa-envelope"></i><span>E-mail</span>
+        </button>
+        <button type="button" class="tipo-opcao" data-tipo="cpf" onclick="selecionarTipoChave('cpf')">
+          <i class="fas fa-id-card"></i><span>CPF/CNPJ</span>
+        </button>
+        <button type="button" class="tipo-opcao" data-tipo="aleatoria" onclick="selecionarTipoChave('aleatoria')">
+          <i class="fas fa-key"></i><span>Aleatória</span>
+        </button>
+      </div>
+      <div class="chave-input-group">
+        <span class="prefixo-chave" id="prefixoChave">+55</span>
+        <input type="text" id="novaChaveInput" placeholder="DDD + número (ex.: 31999991234)" maxlength="20" inputmode="tel">
+        <button class="primary btn-add" onclick="adicionarChave()" title="Adicionar chave PIX">
+          <i class="fas fa-plus"></i> Adicionar
+        </button>
+      </div>
+      <p class="dica-chave">
+        <i class="fas fa-info-circle"></i>
+        <span>Digite a chave no campo acima e clique em <strong>+ Adicionar</strong> para cadastrá-la.</span>
+      </p>
+      <div id="statusChaves" class="status" style="margin-top:6px;"></div>
+    </div>
+    <div class="btn-group" style="margin-top:12px;">
+      <button class="secondary" onclick="abrirAlterarSenha()">🔑 Alterar senha</button>
+      <button class="secondary" onclick="fecharModalGerenciar()">Fechar</button>
+      <button class="primary" id="btnSalvarConfig" onclick="salvarConfiguracoes()" disabled>💾 Salvar tudo</button>
+    </div>
+    <div id="geralStatus" class="status"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAIS DE SENHA (mantidos)
+     ============================================================ -->
+<div class="modal-overlay senha-modal" id="modalAlterarSenha">
+  <div class="modal">
+    <h2>🔑 Alterar senha</h2>
+    <p>Digite a senha atual e a nova senha.</p>
+    <label for="senhaAtual">Senha atual</label>
+    <input type="password" id="senhaAtual" placeholder="Digite sua senha atual" maxlength="20">
+    <label for="novaSenhaAlterar">Nova senha</label>
+    <input type="password" id="novaSenhaAlterar" placeholder="Digite a nova senha" maxlength="20">
+    <label for="confirmaSenhaAlterar">Confirmar nova senha</label>
+    <input type="password" id="confirmaSenhaAlterar" placeholder="Digite novamente" maxlength="20">
+    <div class="erro-senha" id="erroAlterar">Senha atual incorreta ou nova senha não coincide.</div>
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharModalAlterarSenha()">Cancelar</button>
+      <button class="primary" onclick="alterarSenha()">Salvar nova senha</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalCriarSenha">
+  <div class="modal">
+    <h2>🔐 Criar senha de acesso</h2>
+    <p>Defina uma senha para acessar o gerenciamento de chaves PIX.</p>
+    <label for="novaSenha">Nova senha</label>
+    <input type="password" id="novaSenha" placeholder="Digite sua senha" maxlength="20">
+    <label for="confirmaSenha">Confirmar senha</label>
+    <input type="password" id="confirmaSenha" placeholder="Digite novamente" maxlength="20">
+    <div class="erro-senha" id="erroCriar">As senhas não coincidem ou estão vazias.</div>
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharModalCriarSenha()">Cancelar</button>
+      <button class="primary" onclick="criarSenha()">Salvar senha</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalEntrarSenha">
+  <div class="modal">
+    <h2>🔐 Acesso restrito</h2>
+    <p>Digite sua senha para gerenciar as chaves PIX.</p>
+    <label for="senhaAcesso">Senha</label>
+    <input type="password" id="senhaAcesso" placeholder="Digite sua senha" maxlength="20">
+    <div class="erro-senha" id="erroEntrar">Senha incorreta. Tente novamente.</div>
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharModalEntrarSenha()">Cancelar</button>
+      <button class="primary" onclick="entrarSenha()">Entrar</button>
+    </div>
+    <button class="link-esqueci" onclick="abrirRecuperarSenha()">Esqueci minha senha</button>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalRecuperarSenha">
+  <div class="modal">
+    <h2>🔓 Recuperar acesso</h2>
+    <div id="secaoRecoveryCode">
+      <p>Digite o <strong>código de recuperação</strong> que você salvou ao criar sua senha.</p>
+      <label for="codigoRecuperacao">Código de recuperação</label>
+      <input type="text" id="codigoRecuperacao" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" style="text-transform: uppercase; text-align: center; font-family: 'Courier New', monospace; font-size: 17px; letter-spacing: 2px;">
+      <div class="erro-senha" id="erroRecuperacao">Código inválido. Verifique e tente novamente.</div>
+      <button class="primary" onclick="verificarCodigoRecuperacao()" style="width: 100%;">Verificar código</button>
+      <div class="divisor-recuperacao"><span>OPÇÕES</span></div>
+    </div>
+    <div id="secaoSemCodigo" style="display: none;">
+      <p class="small" style="text-align: center; margin-bottom: 14px;">Nenhum código de recuperação foi cadastrado neste dispositivo.</p>
+      <div class="divisor-recuperacao"><span>OPÇÕES</span></div>
+    </div>
+    <div class="aviso-reset danger-box">
+      <p><strong>🗑️ Apagar tudo e começar do zero</strong></p>
+      <p class="small">Apaga senha, configuração, chaves PIX e histórico. Mais seguro, mas você perde todos os dados.</p>
+      <button class="danger" onclick="abrirResetTudo()" style="width: 100%;">Apagar todos os dados</button>
+    </div>
+    <div class="btn-group" style="margin-top: 12px;">
+      <button class="secondary" onclick="fecharModalRecuperarSenha()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalNovaSenhaRecuperada">
+  <div class="modal">
+    <h2>🔐 Nova senha</h2>
+    <p>Defina uma nova senha de acesso.</p>
+    <label for="novaSenhaRecuperada">Nova senha</label>
+    <input type="password" id="novaSenhaRecuperada" placeholder="Digite a nova senha" maxlength="20">
+    <label for="confirmaSenhaRecuperada">Confirmar nova senha</label>
+    <input type="password" id="confirmaSenhaRecuperada" placeholder="Digite novamente" maxlength="20">
+    <div class="erro-senha" id="erroNovaSenhaRecuperada">As senhas não coincidem ou são muito curtas.</div>
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharModalNovaSenhaRecuperada()">Cancelar</button>
+      <button class="primary" onclick="salvarNovaSenhaRecuperada()">Salvar nova senha</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalMostrarRecuperacao">
+  <div class="modal">
+    <h2>🔑 Código de recuperação</h2>
+    <p><strong>Guarde este código em um lugar seguro.</strong> Você vai precisar dele se esquecer sua senha.</p>
+    <div class="codigo-recuperacao-display" id="codigoRecuperacaoDisplay">XXXX-XXXX-XXXX-XXXX</div>
+    <button class="secondary" onclick="copiarCodigoRecuperacao()" style="width: 100%;">📋 Copiar código</button>
+    <button class="secondary" onclick="baixarCodigoRecuperacao()" style="width: 100%;">💾 Baixar como arquivo</button>
+    <p class="small" style="margin-top: 14px; text-align: center;">⚠️ Sem este código e sem a senha, será necessário apagar todos os dados para recuperar o acesso.</p>
+    <button class="primary" onclick="fecharModalMostrarRecuperacao()" style="width: 100%; margin-top: 8px;">✅ Já salvei o código</button>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalConfirmarReset">
+  <div class="modal">
+    <h2>⚠️ Confirmar exclusão total</h2>
+    <p>Esta ação vai <strong>apagar permanentemente</strong>:</p>
+    <ul style="padding-left: 20px; margin: 8px 0;">
+      <li>Sua senha</li>
+      <li>Configuração do recebedor</li>
+      <li>Todas as chaves PIX cadastradas</li>
+      <li>Histórico de recebimentos</li>
+    </ul>
+    <p><strong>Não há como desfazer.</strong></p>
+    <label for="confirmacaoReset">Digite <strong>APAGAR</strong> para confirmar</label>
+    <input type="text" id="confirmacaoReset" placeholder="APAGAR" style="text-transform: uppercase; text-align: center; font-weight: bold;">
+    <div class="erro-senha" id="erroReset">Digite APAGAR para confirmar.</div>
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharModalConfirmarReset()">Cancelar</button>
+      <button class="danger" onclick="executarResetTotal()">🗑️ Apagar tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAIS DE DIÁLOGO (prompt / confirm / alert)
+     ============================================================ -->
+<div class="modal-overlay senha-modal" id="modalPrompt">
+  <div class="modal">
+    <h2 id="promptTitulo">Editar chave PIX</h2>
+    <p id="promptMensagem">Digite o novo valor.</p>
+    <label for="promptInput" id="promptLabel">Valor</label>
+    <input type="text" id="promptInput" maxlength="77" placeholder="Digite aqui">
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharPrompt(null)">Cancelar</button>
+      <button class="primary" onclick="confirmarPrompt()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalConfirm">
+  <div class="modal">
+    <h2 id="confirmTitulo">Confirmação</h2>
+    <p id="confirmMensagem" style="color: #17202a; font-size: 15px; white-space: pre-line; margin: 8px 0 16px;">Mensagem</p>
+    <div class="btn-group">
+      <button class="secondary" onclick="fecharConfirm(false)">Cancelar</button>
+      <button class="primary" onclick="fecharConfirm(true)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay senha-modal" id="modalAlert">
+  <div class="modal">
+    <h2 id="alertTitulo">Aviso</h2>
+    <p id="alertMensagem" style="color: #17202a; font-size: 15px; white-space: pre-line; margin: 8px 0 16px;">Mensagem</p>
+    <button class="primary" onclick="fecharAlerta()" style="width: 100%;">OK</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL TUTORIAL
+     ============================================================ -->
+<div class="modal-overlay tutorial" id="modalTutorial">
+  <div class="modal">
+    <div class="icone">📘</div>
+    <h2>Como usar o PIX3</h2>
+    <ul>
+      <li><strong>1. Cadastre um recebedor</strong><br>Clique em <strong>"✎ Editar"</strong> no resumo e preencha nome, cidade e pelo menos uma chave PIX. Crie uma senha para proteger a edição.</li>
+      <li><strong>2. Gerar cobrança</strong><br>Informe o valor, opcionalmente uma descrição, e clique em <strong>"⚡ Gerar QR Code PIX"</strong>.</li>
+      <li><strong>3. Compartilhar</strong><br>Copie o código ou compartilhe via WhatsApp/e-mail. O destinatário cola no app do banco.</li>
+      <li><strong>4. Recebimento automático</strong><br>Quando o Pix cair, o app detecta, mostra o aviso e registra automaticamente. Se o valor bater com uma cobrança pendente, ela é marcada como paga.</li>
+      <li><strong>5. Gerenciar bancos</strong><br>O app já reconhece BB, Mercado Pago, Sicoob, XP e Nubank. Se aparecer outro banco, use <strong>"🧠 Bancos"</strong> para ensinar o formato.</li>
+      <li><strong>6. Esqueceu a senha?</strong><br>Na tela de login, clique em <strong>"Esqueci minha senha"</strong> e use o código de recuperação.</li>
+    </ul>
+    <p class="small" style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #e8edf2;">
+      Qualquer dúvida ou sugestão, envie um e-mail para<br>
+      <a href="mailto:lumsdeveloper6@gmail.com" style="color: #0b6b3a; font-weight: bold; text-decoration: none;">lumsdeveloper6@gmail.com</a>
+    </p>
+    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #e8edf2; text-align: center;">
+      <p class="small" style="margin-bottom: 8px;">Verifica se há uma versão mais recente do app publicada:</p>
+      <button class="secondary" onclick="verificarAtualizacao(false, this)" style="width: 100%;">🔄 Verificar atualização</button>
+    </div>
+    <button class="primary" onclick="fecharTutorial()" style="margin-top:12px;">Entendi!</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL RELATÓRIOS
+     ============================================================ -->
+<div class="modal-overlay" id="modalRelatorios">
+  <div class="modal" style="max-width: 820px;">
+    <h2>📊 Relatórios de recebimentos</h2>
+    <div class="filtros">
+      <div class="grupo"><label>Dia específico</label><input type="date" id="filtroData"></div>
+      <div class="grupo"><button class="secondary btn-pequeno" onclick="filtrarPorDia()">🔍 Filtrar dia</button></div>
+      <div class="grupo"><label>Período de</label><input type="date" id="filtroInicio"></div>
+      <div class="grupo"><label>até</label><input type="date" id="filtroFim"></div>
+      <div class="grupo"><button class="secondary btn-pequeno" onclick="filtrarPorPeriodo()">🔍 Filtrar período</button></div>
+      <div class="grupo"><button class="secondary btn-pequeno" onclick="limparFiltros()">🔄 Mostrar todos</button></div>
+      <div class="grupo"><button class="secondary btn-pequeno" onclick="fecharModalRelatorios()">✖ Fechar</button></div>
+    </div>
+    <div id="listaRecebimentos" class="lista-recebimentos"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL APRENDER NOVO BANCO
+     ============================================================ -->
+<div class="modal-overlay" id="modalAprender">
+  <div class="modal">
+    <h2 id="tituloModalAprender">🧠 Aprender novo banco</h2>
+    <p class="small" id="subtituloModalAprender">Cole uma notificação real de Pix. Vou tentar extrair os campos automaticamente. Você só revisa e salva.</p>
+    <div id="bannerEdicao">
+      <span>✏️ Modo de edição: alterações vão substituir o parser atual.</span>
+      <button onclick="cancelarEdicao()">Cancelar</button>
+    </div>
+    <label>1. Cole a notificação:</label>
+    <textarea id="inputNotificacao" placeholder="Cole aqui a notificação exata do banco..."></textarea>
+    <label>2. Nome do banco (para exibição):</label>
+    <input type="text" id="inputBanco" placeholder="Ex.: Itaú, Caixa, Inter...">
+    <label>3. Nome do remetente (deixe em branco para auto-detectar):</label>
+    <input type="text" id="inputNomeRemetente" placeholder="Nome como aparece na notificação">
+    <button class="secondary" onclick="testarAprendizado()" style="width:100%;">🧪 Testar extração</button>
+    <div id="previewAprender"></div>
+    <button class="primary" id="btnSalvarParser" onclick="salvarNovoBanco()" style="width:100%;">💾 Salvar parser</button>
+    <button class="secondary" onclick="fecharAprender()" style="width:100%;">Fechar</button>
+    <div id="listaAprendidos"></div>
+    <div class="secaoBackup">
+      <div class="tituloSecao">💾 Backup dos parsers</div>
+      <p class="small">Salve ou restaure a lista de bancos aprendidos. Útil para não perder ao limpar os dados do navegador ou trocar de celular.</p>
+      <button class="secondary" onclick="exportarParsers()" style="width:100%;">💾 Salvar backup em arquivo</button>
+      <button class="secondary" onclick="abrirSeletorArquivo()" style="width:100%;">📂 Restaurar backup de arquivo</button>
+      <div class="infoBackup" id="infoBackupModal">—</div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="inputArquivoParsers" accept=".json,application/json" style="display:none" onchange="importarParsers(event)">
+
+<!-- ============================================================
+     MODAL PIX RECEBIDO (novo)
+     ============================================================ -->
+<div class="pix-modal-overlay" id="modalPixRecebido">
+  <div class="pix-card">
+    <div class="pix-card-header">
+      <div class="pix-check">✓</div>
+      <h1>Pix recebido!</h1>
+      <p id="pixHora">—</p>
+    </div>
+    <div class="pix-card-body">
+      <div class="pix-valor-box">
+        <div class="pix-valor-label">Valor recebido</div>
+        <div class="pix-valor-grande" id="pixValor">R$ —</div>
+      </div>
+      <div class="pix-info-row"><span>Enviado por</span><strong id="pixNome">—</strong></div>
+      <div class="pix-info-row"><span>CPF/CNPJ</span><strong id="pixDoc">—</strong></div>
+      <div class="pix-info-row"><span>Instituição</span><strong id="pixBanco">—</strong></div>
+      <div id="pixStatusCasamento" class="pix-status-casamento"></div>
+      <button class="primary" onclick="fecharModalPixRecebido()" style="width:100%;">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DEBUG
+     ============================================================ -->
+<div id="debug"></div>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ============================================================
+   CONFIGURAÇÃO GLOBAL — PIX3
+   Altere aqui os parâmetros do app, sem mexer no resto.
+   ============================================================ */
+const PIX3_CONFIG = {
+  // Caminho do JSON gravado pelo MacroDroid.
+  // Quando unificar tudo em um só arquivo (futuro), troque para 'pix3.json'
+  ARQUIVO_JSON: 'pix_recebidos.json',
+  // Intervalo do monitor em milissegundos
+  INTERVALO_MONITOR: 1000,
+  // Janela (minutos) para casar um Pix com uma cobrança pendente
+  JANELA_CASAMENTO_MIN: 30,
+  // Tempo (ms) que o modal de Pix fica aberto antes de fechar sozinho
+  AUTO_FECHAR_MODAL: 10000,
+  // Versão do app
+  VERSAO: '2.0.0'
+};
+
+/* ============================================================
+   ATALHOS / UTILITÁRIOS
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+let payloadAtual = '';
+
+/* ============================================================
+   DIÁLOGOS CUSTOMIZADOS (prompt / confirm / alert)
+   ============================================================ */
+let promptResolve = null;
+let confirmResolve = null;
+let alertResolve = null;
+
+function mostrarPrompt(titulo, mensagem, valorInicial, label) {
+  return new Promise((resolve) => {
+    promptResolve = resolve;
+    $('promptTitulo').textContent = titulo;
+    $('promptMensagem').textContent = mensagem || '';
+    $('promptLabel').textContent = label || 'Valor';
+    $('promptInput').value = valorInicial || '';
+    $('modalPrompt').classList.add('active');
+    setTimeout(() => $('promptInput').focus(), 100);
+  });
+}
+function confirmarPrompt() {
+  const val = $('promptInput').value;
+  $('modalPrompt').classList.remove('active');
+  if (promptResolve) { const r = promptResolve; promptResolve = null; r(val); }
+}
+function fecharPrompt(valor) {
+  $('modalPrompt').classList.remove('active');
+  if (promptResolve) { const r = promptResolve; promptResolve = null; r(valor); }
+}
+
+function mostrarConfirm(titulo, mensagem) {
+  return new Promise((resolve) => {
+    confirmResolve = resolve;
+    $('confirmTitulo').textContent = titulo;
+    $('confirmMensagem').textContent = mensagem;
+    $('modalConfirm').classList.add('active');
+  });
+}
+function fecharConfirm(valor) {
+  $('modalConfirm').classList.remove('active');
+  if (confirmResolve) { const r = confirmResolve; confirmResolve = null; r(valor); }
+}
+
+function mostrarAlerta(titulo, mensagem) {
+  return new Promise((resolve) => {
+    alertResolve = resolve;
+    $('alertTitulo').textContent = titulo;
+    $('alertMensagem').textContent = mensagem;
+    $('modalAlert').classList.add('active');
+  });
+}
+function fecharAlerta() {
+  $('modalAlert').classList.remove('active');
+  if (alertResolve) { const r = alertResolve; alertResolve = null; r(); }
+}
+
+document.addEventListener('keydown', function(e) {
+  if ($('modalPrompt').classList.contains('active')) {
+    if (e.key === 'Enter') { e.preventDefault(); confirmarPrompt(); }
+    else if (e.key === 'Escape') { fecharPrompt(null); }
+  } else if ($('modalConfirm').classList.contains('active')) {
+    if (e.key === 'Escape') fecharConfirm(false);
+  } else if ($('modalAlert').classList.contains('active')) {
+    if (e.key === 'Enter' || e.key === 'Escape') fecharAlerta();
+  }
+});
+
+document.getElementById('modalPrompt').addEventListener('click', function(e) {
+  if (e.target === this) fecharPrompt(null);
+});
+document.getElementById('modalConfirm').addEventListener('click', function(e) {
+  if (e.target === this) fecharConfirm(false);
+});
+document.getElementById('modalAlert').addEventListener('click', function(e) {
+  if (e.target === this) fecharAlerta();
+});
+
+/* ============================================================
+   SENHA (hash PBKDF2 + código de recuperação)
+   ============================================================ */
+const PASSWORD_HASH_KEY = 'pixSenhaHash';
+const PASSWORD_SALT_KEY = 'pixSenhaSalt';
+const RECOVERY_HASH_KEY = 'pixSenhaRecoveryHash';
+const RECOVERY_SALT_KEY = 'pixSenhaRecoverySalt';
+const LEGACY_PASSWORD_KEY = 'pixSenha';
+
+function bytesToBase64(bytes) {
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+function base64ToBytes(base64) {
+  const binary = atob(base64);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+async function hashPassword(password, saltBytes) {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: saltBytes, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return new Uint8Array(bits);
+}
+function gerarCodigoRecuperacao() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let code = '';
+  for (let i = 0; i < 16; i++) code += alphabet[bytes[i] % alphabet.length];
+  return code.match(/.{1,4}/g).join('-');
+}
+function normalizarCodigo(code) {
+  return String(code || '').replace(/[-\s]/g, '').toUpperCase();
+}
+async function savePassword(password, recoveryCode) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const hash = await hashPassword(password, salt);
+  localStorage.setItem(PASSWORD_SALT_KEY, bytesToBase64(salt));
+  localStorage.setItem(PASSWORD_HASH_KEY, bytesToBase64(hash));
+  if (recoveryCode) {
+    const normalized = normalizarCodigo(recoveryCode);
+    const rSalt = crypto.getRandomValues(new Uint8Array(16));
+    const rHash = await hashPassword(normalized, rSalt);
+    localStorage.setItem(RECOVERY_SALT_KEY, bytesToBase64(rSalt));
+    localStorage.setItem(RECOVERY_HASH_KEY, bytesToBase64(rHash));
+  }
+  localStorage.removeItem(LEGACY_PASSWORD_KEY);
+}
+async function verifyPassword(password) {
+  const hashSaved = localStorage.getItem(PASSWORD_HASH_KEY);
+  const saltSaved = localStorage.getItem(PASSWORD_SALT_KEY);
+  if (hashSaved && saltSaved) {
+    const hash = await hashPassword(password, base64ToBytes(saltSaved));
+    const expected = base64ToBytes(hashSaved);
+    if (hash.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < hash.length; i++) diff |= hash[i] ^ expected[i];
+    return diff === 0;
+  }
+  const legacy = localStorage.getItem(LEGACY_PASSWORD_KEY);
+  if (legacy !== null && password === legacy) {
+    await savePassword(password, null);
+    return true;
+  }
+  return false;
+}
+async function verifyRecoveryCode(code) {
+  const hashSaved = localStorage.getItem(RECOVERY_HASH_KEY);
+  const saltSaved = localStorage.getItem(RECOVERY_SALT_KEY);
+  if (!hashSaved || !saltSaved) return false;
+  const normalized = normalizarCodigo(code);
+  if (!normalized) return false;
+  const hash = await hashPassword(normalized, base64ToBytes(saltSaved));
+  const expected = base64ToBytes(hashSaved);
+  if (hash.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < hash.length; i++) diff |= hash[i] ^ expected[i];
+  return diff === 0;
+}
+function hasPassword() {
+  return !!(localStorage.getItem(PASSWORD_HASH_KEY) && localStorage.getItem(PASSWORD_SALT_KEY))
+    || localStorage.getItem(LEGACY_PASSWORD_KEY) !== null;
+}
+function hasRecoveryCode() {
+  return !!(localStorage.getItem(RECOVERY_HASH_KEY) && localStorage.getItem(RECOVERY_SALT_KEY));
+}
+
+let acaoAposFecharRecuperacao = null;
+
+async function abrirGerenciar() {
+  if (!hasPassword()) {
+    $('modalCriarSenha').classList.add('active');
+    $('novaSenha').value = '';
+    $('confirmaSenha').value = '';
+    document.getElementById('erroCriar').classList.remove('visible');
+  } else {
+    $('modalEntrarSenha').classList.add('active');
+    $('senhaAcesso').value = '';
+    document.getElementById('erroEntrar').classList.remove('visible');
+  }
+}
+async function criarSenha() {
+  const senha = $('novaSenha').value.trim();
+  const confirma = $('confirmaSenha').value.trim();
+  if (!senha || senha.length < 6 || senha !== confirma) {
+    document.getElementById('erroCriar').textContent = 'A senha deve ter pelo menos 6 caracteres e coincidir com a confirmação.';
+    document.getElementById('erroCriar').classList.add('visible');
+    return;
+  }
+  try {
+    const codigo = gerarCodigoRecuperacao();
+    await savePassword(senha, codigo);
+    fecharModalCriarSenha();
+    acaoAposFecharRecuperacao = () => abrirModalGerenciar();
+    mostrarCodigoRecuperacao(codigo);
+  } catch (e) {
+    await mostrarAlerta('Erro', 'Não foi possível proteger a senha neste dispositivo. Tente novamente.');
+  }
+}
+async function entrarSenha() {
+  const senha = $('senhaAcesso').value.trim();
+  try {
+    if (await verifyPassword(senha)) {
+      fecharModalEntrarSenha();
+      abrirModalGerenciar();
+    } else {
+      document.getElementById('erroEntrar').classList.add('visible');
+      $('senhaAcesso').value = '';
+    }
+  } catch (e) {
+    document.getElementById('erroEntrar').textContent = 'Não foi possível verificar a senha. Tente novamente.';
+    document.getElementById('erroEntrar').classList.add('visible');
+    $('senhaAcesso').value = '';
+  }
+}
+function fecharModalCriarSenha() { $('modalCriarSenha').classList.remove('active'); }
+function fecharModalEntrarSenha() { $('modalEntrarSenha').classList.remove('active'); }
+
+async function abrirAlterarSenha() {
+  if (!hasPassword()) {
+    await mostrarAlerta('Nenhuma senha', 'Nenhuma senha cadastrada. Crie uma senha primeiro.');
+    return;
+  }
+  $('modalAlterarSenha').classList.add('active');
+  $('senhaAtual').value = '';
+  $('novaSenhaAlterar').value = '';
+  $('confirmaSenhaAlterar').value = '';
+  document.getElementById('erroAlterar').classList.remove('visible');
+}
+function fecharModalAlterarSenha() { $('modalAlterarSenha').classList.remove('active'); }
+
+async function alterarSenha() {
+  const atual = $('senhaAtual').value.trim();
+  const nova = $('novaSenhaAlterar').value.trim();
+  const confirma = $('confirmaSenhaAlterar').value.trim();
+  if (!(await verifyPassword(atual))) {
+    document.getElementById('erroAlterar').textContent = 'Senha atual incorreta.';
+    document.getElementById('erroAlterar').classList.add('visible');
+    return;
+  }
+  if (!nova || nova.length < 6 || nova !== confirma) {
+    document.getElementById('erroAlterar').textContent = 'A nova senha deve ter pelo menos 6 caracteres e coincidir com a confirmação.';
+    document.getElementById('erroAlterar').classList.add('visible');
+    return;
+  }
+  const codigo = gerarCodigoRecuperacao();
+  await savePassword(nova, codigo);
+  fecharModalAlterarSenha();
+  mostrarCodigoRecuperacao(codigo);
+}
+
+function abrirRecuperarSenha() {
+  fecharModalEntrarSenha();
+  $('modalRecuperarSenha').classList.add('active');
+  document.getElementById('erroRecuperacao').classList.remove('visible');
+  $('codigoRecuperacao').value = '';
+  if (hasRecoveryCode()) {
+    $('secaoRecoveryCode').style.display = 'block';
+    $('secaoSemCodigo').style.display = 'none';
+  } else {
+    $('secaoRecoveryCode').style.display = 'none';
+    $('secaoSemCodigo').style.display = 'block';
+  }
+}
+function fecharModalRecuperarSenha() { $('modalRecuperarSenha').classList.remove('active'); }
+
+async function verificarCodigoRecuperacao() {
+  const code = $('codigoRecuperacao').value.trim();
+  if (!code) {
+    document.getElementById('erroRecuperacao').textContent = 'Digite o código de recuperação.';
+    document.getElementById('erroRecuperacao').classList.add('visible');
+    return;
+  }
+  try {
+    if (await verifyRecoveryCode(code)) {
+      fecharModalRecuperarSenha();
+      abrirModalNovaSenhaRecuperada();
+    } else {
+      document.getElementById('erroRecuperacao').textContent = 'Código inválido. Verifique e tente novamente.';
+      document.getElementById('erroRecuperacao').classList.add('visible');
+    }
+  } catch (e) {
+    document.getElementById('erroRecuperacao').textContent = 'Erro ao verificar. Tente novamente.';
+    document.getElementById('erroRecuperacao').classList.add('visible');
+  }
+}
+function abrirModalNovaSenhaRecuperada() {
+  $('modalNovaSenhaRecuperada').classList.add('active');
+  $('novaSenhaRecuperada').value = '';
+  $('confirmaSenhaRecuperada').value = '';
+  document.getElementById('erroNovaSenhaRecuperada').classList.remove('visible');
+}
+function fecharModalNovaSenhaRecuperada() { $('modalNovaSenhaRecuperada').classList.remove('active'); }
+
+async function salvarNovaSenhaRecuperada() {
+  const nova = $('novaSenhaRecuperada').value.trim();
+  const confirma = $('confirmaSenhaRecuperada').value.trim();
+  if (!nova || nova.length < 6 || nova !== confirma) {
+    document.getElementById('erroNovaSenhaRecuperada').textContent = 'A senha deve ter pelo menos 6 caracteres e coincidir com a confirmação.';
+    document.getElementById('erroNovaSenhaRecuperada').classList.add('visible');
+    return;
+  }
+  const codigo = gerarCodigoRecuperacao();
+  await savePassword(nova, codigo);
+  fecharModalNovaSenhaRecuperada();
+  acaoAposFecharRecuperacao = () => abrirModalGerenciar();
+  mostrarCodigoRecuperacao(codigo);
+}
+
+function mostrarCodigoRecuperacao(codigo) {
+  $('codigoRecuperacaoDisplay').textContent = codigo;
+  $('modalMostrarRecuperacao').classList.add('active');
+}
+function fecharModalMostrarRecuperacao() {
+  $('modalMostrarRecuperacao').classList.remove('active');
+  if (acaoAposFecharRecuperacao) {
+    const cb = acaoAposFecharRecuperacao;
+    acaoAposFecharRecuperacao = null;
+    cb();
+  }
+}
+
+function copiarParaAreaDeTransferencia(texto) {
+  const ta = document.createElement('textarea');
+  ta.value = texto;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.top = '0';
+  ta.style.left = '-9999px';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, texto.length);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+
+async function copiarCodigoRecuperacao() {
+  const code = $('codigoRecuperacaoDisplay').textContent;
+  if (copiarParaAreaDeTransferencia(code)) {
+    await mostrarAlerta('Código copiado', '✓ Código copiado! Guarde em local seguro.');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(code);
+    await mostrarAlerta('Código copiado', '✓ Código copiado! Guarde em local seguro.');
+  } catch (e) {
+    await mostrarAlerta('Erro', 'Não foi possível copiar. Tente novamente.');
+  }
+}
+function baixarCodigoRecuperacao() {
+  const code = $('codigoRecuperacaoDisplay').textContent;
+  const texto = 'CÓDIGO DE RECUPERAÇÃO — PIX3\n\n' + code
+    + '\n\nGuarde este arquivo em local seguro.\nVocê precisará deste código se esquecer sua senha.\n\nGerado em: '
+    + new Date().toLocaleString('pt-BR') + '\n';
+  const blob = new Blob([texto], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'codigo-recuperacao-pix3.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function abrirResetTudo() {
+  fecharModalRecuperarSenha();
+  $('modalConfirmarReset').classList.add('active');
+  $('confirmacaoReset').value = '';
+  document.getElementById('erroReset').classList.remove('visible');
+}
+function fecharModalConfirmarReset() { $('modalConfirmarReset').classList.remove('active'); }
+
+async function executarResetTotal() {
+  const confirmacao = $('confirmacaoReset').value.trim().toUpperCase();
+  if (confirmacao !== 'APAGAR') {
+    document.getElementById('erroReset').textContent = 'Digite APAGAR para confirmar.';
+    document.getElementById('erroReset').classList.add('visible');
+    return;
+  }
+  localStorage.removeItem(PASSWORD_HASH_KEY);
+  localStorage.removeItem(PASSWORD_SALT_KEY);
+  localStorage.removeItem(RECOVERY_HASH_KEY);
+  localStorage.removeItem(RECOVERY_SALT_KEY);
+  localStorage.removeItem(LEGACY_PASSWORD_KEY);
+  localStorage.removeItem('pixConfig');
+  localStorage.removeItem('pixRecebimentos');
+  fecharModalConfirmarReset();
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+  await mostrarAlerta('Dados apagados', '✅ Todos os dados foram apagados. Você pode começar do zero.');
+  iniciar();
+}
+
+function abrirTutorial() { $('modalTutorial').classList.add('active'); }
+function fecharTutorial() { $('modalTutorial').classList.remove('active'); }
+
+/* ============================================================
+   TIPO DE CHAVE (formulário)
+   ============================================================ */
+let tipoChaveAtual = 'telefone';
+function selecionarTipoChave(tipo) {
+  tipoChaveAtual = tipo;
+  document.querySelectorAll('.tipo-opcao').forEach(b => b.classList.toggle('active', b.dataset.tipo === tipo));
+  const prefixo = document.getElementById('prefixoChave');
+  const input = document.getElementById('novaChaveInput');
+  if (tipo === 'telefone') {
+    prefixo.classList.remove('oculto');
+    input.placeholder = 'DDD + número (ex.: 31999991234)';
+    input.maxLength = 20;
+    input.setAttribute('inputmode', 'tel');
+  } else {
+    prefixo.classList.add('oculto');
+    if (tipo === 'email') {
+      input.placeholder = 'exemplo@email.com';
+      input.maxLength = 77;
+      input.setAttribute('inputmode', 'email');
+    } else if (tipo === 'cpf') {
+      input.placeholder = 'Somente números (CPF/CNPJ)';
+      input.maxLength = 20;
+      input.setAttribute('inputmode', 'numeric');
+    } else {
+      input.placeholder = 'Chave aleatória (EVP)';
+      input.maxLength = 77;
+      input.setAttribute('inputmode', 'text');
+    }
+  }
+  input.value = '';
+  document.getElementById('statusChaves').textContent = '';
+}
+
+function marcarAlteracao() {
+  const btn = document.getElementById('btnSalvarConfig');
+  if (btn) btn.disabled = false;
+}
+function resetarEstadoSalvar() {
+  const btn = document.getElementById('btnSalvarConfig');
+  if (btn) btn.disabled = true;
+}
+function setupSaveListeners() {
+  ['modalHeader', 'modalNome', 'modalCidade', 'modalTxid', 'modalDescricao'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el._saveListenerAdded) {
+      el.addEventListener('input', marcarAlteracao);
+      el._saveListenerAdded = true;
+    }
+  });
+}
+
+/* ============================================================
+   UTILITÁRIOS DE TEXTO / CHAVE
+   ============================================================ */
+function limparTexto(s, max) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9 .\\-]/g,'').toUpperCase().trim().slice(0,max);
+}
+function limparHeader(s, max) {
+  if (!s) return '';
+  return s.trim().slice(0, max);
+}
+function mascararChave(chave) {
+  if (!chave) return chave;
+  chave = chave.trim();
+  const semEspacos = chave.replace(/\s/g, '');
+  const temMais55 = semEspacos.startsWith('+55') || semEspacos.startsWith('55');
+  if (temMais55) {
+    const apenasDigitos = semEspacos.replace(/\D/g, '');
+    if (apenasDigitos.length >= 12 && apenasDigitos.startsWith('55')) {
+      const digitosVisiveis = apenasDigitos.slice(2, -4);
+      return '+55' + digitosVisiveis + '****';
+    }
+    return chave;
+  }
+  if (/^\d{11}$/.test(chave)) { return '***' + chave.slice(3, -2) + '**'; }
+  if (chave.includes('@')) {
+    const partes = chave.split('@');
+    const local = partes[0];
+    const dominio = partes.slice(1).join('@');
+    if (local.length <= 4) return '****@' + dominio;
+    return '****' + local.slice(4) + '@' + dominio;
+  }
+  return chave;
+}
+function formatarValor(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (!v) { el.value = ''; return; }
+  v = (parseInt(v, 10) / 100).toFixed(2).replace('.', ',');
+  el.value = v;
+}
+function valorNumero() {
+  let v = $('valor').value.replace(/\./g, '').replace(',', '.');
+  return Number(v);
+}
+function campo(id, tamanho, valor) {
+  const s = String(valor);
+  return id + String(s.length).padStart(2, '0') + s;
+}
+function crc16(str) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+function gerarPayload(dados, chave, valor, descricao) {
+  const gui = campo('00', 'br.gov.bcb.pix'.length, 'br.gov.bcb.pix');
+  const chaveField = campo('01', chave.length, chave);
+  let mai = gui + chaveField;
+  if (descricao) mai += campo('02', descricao.length, descricao);
+  const merchant = campo('26', mai.length, mai);
+  const nome = limparTexto(dados.nome, 25);
+  const cidade = limparTexto(dados.cidade, 15);
+  let txid = limparTexto(dados.txid || '***', 25) || '***';
+  const txidField = campo('05', txid.length, txid);
+  const additional = campo('62', txidField.length, txidField);
+  let payload = '';
+  payload += campo('00', 2, '01');
+  payload += campo('01', 2, '11');
+  payload += merchant;
+  payload += campo('52', 4, '0000');
+  payload += campo('53', 3, '986');
+  if (valor > 0) {
+    const valorStr = valor.toFixed(2);
+    payload += campo('54', valorStr.length, valorStr);
+  }
+  payload += campo('58', 2, 'BR');
+  payload += campo('59', nome.length, nome);
+  payload += campo('60', cidade.length, cidade);
+  payload += additional;
+  const semCRC = payload + '6304';
+  return semCRC + crc16(semCRC);
+}
+
+/* ============================================================
+   CONFIG DO RECEBEDOR
+   ============================================================ */
+function getConfig() {
+  try {
+    const raw = localStorage.getItem('pixConfig');
+    if (raw) {
+      const config = JSON.parse(raw);
+      if (config.chaves && config.chaves.length > 0) return config;
+    }
+  } catch(e) {}
+  return { nome: '', cidade: '', txid: '***', descricao: '', header: 'PIX3 — Recebimentos', chaves: [], chaveAtiva: null };
+}
+function saveConfig(config) { localStorage.setItem('pixConfig', JSON.stringify(config)); }
+
+function atualizarResumo() {
+  const config = getConfig();
+  const div = document.getElementById('resumoRecebedor');
+  const chaveAtiva = config.chaveAtiva !== null ? config.chaves.find(c => c.id === config.chaveAtiva) : null;
+  const chaveStr = chaveAtiva ? chaveAtiva.chave : 'Nenhuma chave cadastrada';
+  const chaveMasc = chaveAtiva ? mascararChave(chaveAtiva.chave) : '—';
+  if (config.nome && config.cidade && chaveAtiva) {
+    div.innerHTML = `
+      <div class="resumo">
+        <div class="info">
+          <strong>Recebedor:</strong> ${config.nome}<br>
+          <strong>Chave:</strong>
+          <span class="chave-mascarada" title="${chaveStr}">${chaveMasc}</span><br>
+          <strong>Cidade:</strong> ${config.cidade}
+          ${config.txid && config.txid !== '***' ? `<br><strong>TXID:</strong> ${config.txid}` : ''}
+        </div>
+        <button class="btn-edit" onclick="abrirGerenciar()">✎ Editar</button>
+      </div>
+    `;
+  } else {
+    div.innerHTML = `
+      <div style="background:#fef6e0; padding:12px 16px; border-radius:10px; border-left:4px solid #f1b04a; margin-bottom:12px;">
+        <strong>⚠️ Complete o cadastro do recebedor e adicione pelo menos uma chave PIX.</strong>
+        <button class="primary" onclick="abrirGerenciar()" style="width:auto; padding:8px 16px; margin-top:6px;">Configurar agora</button>
+      </div>
+    `;
+  }
+}
+function atualizarCabecalho(titulo) {
+  const elemento = document.getElementById('tituloCabecalho');
+  if (!elemento) return;
+  const tituloFinal = (titulo && titulo.trim() !== '') ? titulo : 'PIX3 — Recebimentos';
+  elemento.textContent = tituloFinal;
+}
+
+function abrirModalGerenciar() {
+  const config = getConfig();
+  $('modalHeader').value = config.header || 'PIX3 — Recebimentos';
+  $('modalNome').value = config.nome || '';
+  $('modalCidade').value = config.cidade || '';
+  $('modalTxid').value = config.txid || '***';
+  $('modalDescricao').value = config.descricao || '';
+  renderizarListaChaves(config);
+  tipoChaveAtual = 'telefone';
+  document.querySelectorAll('.tipo-opcao').forEach(b => b.classList.toggle('active', b.dataset.tipo === 'telefone'));
+  const prefixo = document.getElementById('prefixoChave');
+  const input = document.getElementById('novaChaveInput');
+  prefixo.classList.remove('oculto');
+  input.placeholder = 'DDD + número (ex.: 31999991234)';
+  input.maxLength = 20;
+  input.setAttribute('inputmode', 'tel');
+  input.value = '';
+  resetarEstadoSalvar();
+  $('modalGerenciar').classList.add('active');
+  $('geralStatus').textContent = '';
+  $('statusChaves').textContent = '';
+}
+
+async function fecharModalGerenciar(forceClose) {
+  if (!forceClose) {
+    const btn = document.getElementById('btnSalvarConfig');
+    if (btn && !btn.disabled) {
+      const ok = await mostrarConfirm(
+        'Sair sem salvar?',
+        'Existem alterações não salvas no cadastro.\n\nDeseja realmente sair sem salvar? As alterações serão perdidas.'
+      );
+      if (!ok) return;
+    }
+  }
+  $('modalGerenciar').classList.remove('active');
+}
+
+function renderizarListaChaves(config) {
+  const container = document.getElementById('listaChaves');
+  if (!config.chaves || config.chaves.length === 0) {
+    container.innerHTML = `<div style="padding:12px; text-align:center; color:#68737d;">Nenhuma chave cadastrada.</div>`;
+    return;
+  }
+  let html = '';
+  config.chaves.forEach(c => {
+    const isAtiva = (c.id === config.chaveAtiva);
+    const chaveMasc = mascararChave(c.chave);
+    html += `
+      <div class="item-chave">
+        <span class="selecionar ${isAtiva ? 'ativa' : ''}" onclick="selecionarChave(${c.id})" title="Tornar ativa">
+          <i class="${isAtiva ? 'fas fa-check-circle' : 'far fa-circle'}"></i>
+        </span>
+        <span class="chave-texto" title="${c.chave}">${chaveMasc}</span>
+        <div class="acoes-chave">
+          <button class="editar" onclick="editarChave(${c.id})" title="Editar"><i class="fas fa-pen"></i></button>
+          <button class="excluir" onclick="excluirChave(${c.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function selecionarChave(id) {
+  const config = getConfig();
+  if (config.chaves.some(c => c.id === id)) {
+    config.chaveAtiva = id;
+    saveConfig(config);
+    renderizarListaChaves(config);
+    atualizarResumo();
+    $('statusChaves').textContent = '✓ Chave ativa alterada.';
+    $('statusChaves').style.color = '#0b6b3a';
+    setTimeout(() => { $('statusChaves').textContent = ''; }, 2000);
+  }
+}
+
+async function editarChave(id) {
+  const config = getConfig();
+  const chave = config.chaves.find(c => c.id === id);
+  if (!chave) return;
+  const nova = await mostrarPrompt(
+    'Editar chave PIX',
+    'Digite a nova chave. Não pode conter espaços.',
+    chave.chave,
+    'Chave PIX'
+  );
+  if (nova === null) return;
+  const valor = nova.trim();
+  if (!valor) return;
+  if (valor.includes(' ')) {
+    $('statusChaves').textContent = 'A chave não pode conter espaços.';
+    $('statusChaves').style.color = '#a42020';
+    return;
+  }
+  if (valor === chave.chave) return;
+  chave.chave = valor;
+  saveConfig(config);
+  renderizarListaChaves(config);
+  atualizarResumo();
+  marcarAlteracao();
+  $('statusChaves').textContent = '✓ Chave atualizada.';
+  $('statusChaves').style.color = '#0b6b3a';
+  setTimeout(() => { $('statusChaves').textContent = ''; }, 2000);
+}
+
+async function excluirChave(id) {
+  const ok = await mostrarConfirm('Remover chave PIX', 'Remover esta chave PIX?\n\nEsta ação não pode ser desfeita.');
+  if (!ok) return;
+  const config = getConfig();
+  const idx = config.chaves.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  config.chaves.splice(idx, 1);
+  if (config.chaveAtiva === id) {
+    config.chaveAtiva = config.chaves.length > 0 ? config.chaves[0].id : null;
+  }
+  saveConfig(config);
+  renderizarListaChaves(config);
+  atualizarResumo();
+  marcarAlteracao();
+  $('statusChaves').textContent = '✓ Chave removida.';
+  $('statusChaves').style.color = '#0b6b3a';
+  setTimeout(() => { $('statusChaves').textContent = ''; }, 2000);
+}
+
+function adicionarChave() {
+  const input = document.getElementById('novaChaveInput');
+  let valor = input.value.trim();
+  if (!valor) {
+    $('statusChaves').textContent = 'Digite uma chave PIX.';
+    $('statusChaves').style.color = '#a42020';
+    return;
+  }
+  if (tipoChaveAtual === 'telefone') {
+    const digits = valor.replace(/\D/g, '');
+    if (digits.length >= 12 && digits.length <= 13 && digits.startsWith('55')) {
+      valor = '+' + digits;
+    } else if (digits.length >= 10 && digits.length <= 11) {
+      valor = '+55' + digits;
+    } else {
+      $('statusChaves').textContent = 'Telefone inválido. Use DDD + número (10 ou 11 dígitos).';
+      $('statusChaves').style.color = '#a42020';
+      return;
+    }
+  }
+  if (valor.includes(' ')) {
+    $('statusChaves').textContent = 'A chave não pode conter espaços.';
+    $('statusChaves').style.color = '#a42020';
+    return;
+  }
+  const config = getConfig();
+  if (config.chaves.some(c => c.chave === valor)) {
+    $('statusChaves').textContent = 'Esta chave já está cadastrada.';
+    $('statusChaves').style.color = '#a42020';
+    return;
+  }
+  const newId = Date.now();
+  config.chaves.push({ id: newId, chave: valor });
+  if (!config.chaveAtiva) config.chaveAtiva = newId;
+  saveConfig(config);
+  renderizarListaChaves(config);
+  atualizarResumo();
+  input.value = '';
+  marcarAlteracao();
+  $('statusChaves').textContent = '✓ Chave adicionada!';
+  $('statusChaves').style.color = '#0b6b3a';
+  setTimeout(() => { $('statusChaves').textContent = ''; }, 2000);
+}
+
+function salvarConfiguracoes() {
+  const config = getConfig();
+  config.header = limparHeader($('modalHeader').value, 50) || 'PIX3 — Recebimentos';
+  config.nome = limparTexto($('modalNome').value, 25);
+  config.cidade = limparTexto($('modalCidade').value, 15);
+  config.txid = limparTexto($('modalTxid').value, 25) || '***';
+  config.descricao = limparTexto($('modalDescricao').value, 72);
+  if (!config.nome || !config.cidade) {
+    $('geralStatus').textContent = 'Preencha nome e cidade.';
+    $('geralStatus').style.color = '#a42020';
+    return;
+  }
+  if (!config.chaves || config.chaves.length === 0) {
+    $('geralStatus').textContent = 'Adicione pelo menos uma chave PIX.';
+    $('geralStatus').style.color = '#a42020';
+    return;
+  }
+  if (config.chaveAtiva === null || !config.chaves.some(c => c.id === config.chaveAtiva)) {
+    config.chaveAtiva = config.chaves[0].id;
+  }
+  saveConfig(config);
+  atualizarResumo();
+  atualizarCabecalho(config.header);
+  resetarEstadoSalvar();
+  $('geralStatus').textContent = '✓ Configurações salvas!';
+  $('geralStatus').style.color = '#0b6b3a';
+  setTimeout(() => { $('geralStatus').textContent = ''; }, 3000);
+}
+
+/* ============================================================
+   HISTÓRICO DE RECEBIMENTOS (compatível com versão anterior)
+   + campos novos: pagador, banco, origem
+   ============================================================ */
+function getRecebimentos() {
+  try { return JSON.parse(localStorage.getItem('pixRecebimentos') || '[]'); } catch (e) { return []; }
+}
+function salvarRecebimentos(lista) { localStorage.setItem('pixRecebimentos', JSON.stringify(lista)); }
+function adicionarRecebimento(valor, descricao, txid, chave, extras) {
+  const now = new Date();
+  const dataStr = now.toISOString().slice(0, 10);
+  const hora = now.toLocaleTimeString('pt-BR');
+  const item = Object.assign({
+    id: Date.now(),
+    data: dataStr,
+    hora: hora,
+    valor,
+    descricao: descricao || '',
+    txid: txid || '***',
+    chave: chave || '',
+    status: 'pendente',
+    pagador: '',
+    banco: '',
+    origem: 'manual'
+  }, extras || {});
+  const lista = getRecebimentos();
+  lista.unshift(item);
+  salvarRecebimentos(lista);
+  return item;
+}
+function marcarComoPago(id) {
+  const lista = getRecebimentos();
+  const item = lista.find(i => i.id === id);
+  if (item) {
+    item.status = 'pago';
+    salvarRecebimentos(lista);
+    renderizarLista(lista);
+    return true;
+  }
+  return false;
+}
+function excluirRecebimento(id) {
+  let lista = getRecebimentos();
+  lista = lista.filter(i => i.id !== id);
+  salvarRecebimentos(lista);
+  renderizarLista(lista);
+}
+function renderizarLista(lista) {
+  const container = document.getElementById('listaRecebimentos');
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<div class="sem-dados">Nenhum recebimento encontrado.</div>`;
+    return;
+  }
+  let html = '';
+  let total = 0, pagoCount = 0;
+  lista.forEach(item => {
+    const valorStr = item.valor.toFixed(2).replace('.', ',');
+    const statusClass = item.status === 'pago' ? 'status-pago' : 'status-pendente';
+    const statusLabel = item.status === 'pago' ? '✅ Pago' : '⏳ Pendente';
+    if (item.status === 'pago') { pagoCount++; total += item.valor; }
+    const chaveExib = item.chave ? mascararChave(item.chave) : '—';
+    const origemBadge = item.origem === 'auto' ? ' 🤖' : (item.origem === 'avulso' ? ' 📥' : '');
+    const pagadorInfo = item.pagador ? ` • ${item.pagador}` : '';
+    const bancoInfo = item.banco ? ` • ${item.banco}` : '';
+    html += `
+      <div class="item-recebimento">
+        <div class="info">
+          <span class="data">${item.data} ${item.hora}</span>
+          <span class="valor">R$ ${valorStr}</span>
+          <span class="descricao">${item.descricao || 'Sem descrição'}${origemBadge}</span>
+          ${pagadorInfo || bancoInfo ? `<span style="font-size:12px;color:#68737d;">${pagadorInfo}${bancoInfo}</span>` : ''}
+          <span style="font-size:12px;color:#68737d;">Chave: ${chaveExib}</span>
+          <span class="status ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="acoes">
+          ${item.status === 'pendente' ? `<button class="secondary btn-pequeno" onclick="marcarComoPago(${item.id})">✅ Confirmar</button>` : ''}
+          <button class="danger btn-pequeno" onclick="excluirRecebimento(${item.id})">🗑️</button>
+        </div>
+      </div>
+    `;
+  });
+  const totalHTML = `<div class="total">Total recebido (pagos): R$ ${total.toFixed(2).replace('.', ',')} &nbsp;|&nbsp; ${pagoCount} pagos de ${lista.length}</div>`;
+  container.innerHTML = html + totalHTML;
+}
+async function filtrarPorDia() {
+  const data = document.getElementById('filtroData').value;
+  if (!data) { await mostrarAlerta('Atenção', 'Selecione uma data.'); return; }
+  const lista = getRecebimentos();
+  const filtrados = lista.filter(item => item.data === data);
+  renderizarLista(filtrados);
+}
+async function filtrarPorPeriodo() {
+  const inicio = document.getElementById('filtroInicio').value;
+  const fim = document.getElementById('filtroFim').value;
+  if (!inicio || !fim) { await mostrarAlerta('Atenção', 'Selecione as duas datas.'); return; }
+  if (inicio > fim) { await mostrarAlerta('Atenção', 'A data inicial deve ser menor ou igual à data final.'); return; }
+  const lista = getRecebimentos();
+  const filtrados = lista.filter(item => item.data >= inicio && item.data <= fim);
+  renderizarLista(filtrados);
+}
+function limparFiltros() {
+  document.getElementById('filtroData').value = '';
+  document.getElementById('filtroInicio').value = '';
+  document.getElementById('filtroFim').value = '';
+  const lista = getRecebimentos();
+  renderizarLista(lista);
+}
+function abrirModalRelatorios() {
+  const lista = getRecebimentos();
+  renderizarLista(lista);
+  $('modalRelatorios').classList.add('active');
+}
+function fecharModalRelatorios() { $('modalRelatorios').classList.remove('active'); }
+document.getElementById('modalRelatorios').addEventListener('click', function(e) {
+  if (e.target === this) fecharModalRelatorios();
+});
+
+/* ============================================================
+   GERAR PIX (cobrança)
+   ============================================================ */
+function gerarPix() {
+  const config = getConfig();
+  if (!config.nome || !config.cidade) {
+    $('recebStatus').textContent = 'Configure o recebedor primeiro.';
+    $('recebStatus').style.color = '#a42020';
+    abrirGerenciar();
+    return;
+  }
+  if (!config.chaves || config.chaves.length === 0) {
+    $('recebStatus').textContent = 'Cadastre pelo menos uma chave PIX.';
+    $('recebStatus').style.color = '#a42020';
+    abrirGerenciar();
+    return;
+  }
+  const chaveAtiva = config.chaves.find(c => c.id === config.chaveAtiva);
+  if (!chaveAtiva) {
+    $('recebStatus').textContent = 'Selecione uma chave ativa.';
+    $('recebStatus').style.color = '#a42020';
+    abrirGerenciar();
+    return;
+  }
+  const chave = chaveAtiva.chave;
+  const valor = valorNumero();
+  if (!isFinite(valor) || valor <= 0) {
+    $('recebStatus').textContent = 'Informe um valor maior que zero.';
+    $('recebStatus').style.color = '#a42020';
+    return;
+  }
+  const descricao = limparTexto($('descricaoCobranca').value || config.descricao, 72);
+  if (/\s/.test(chave)) {
+    $('recebStatus').textContent = 'A chave PIX não pode conter espaços.';
+    $('recebStatus').style.color = '#a42020';
+    return;
+  }
+  const txid = config.txid || '***';
+  const payload = gerarPayload(config, chave, valor, descricao);
+
+  payloadAtual = payload;
+  limparFeedbackCopia();
+
+  adicionarRecebimento(valor, descricao, txid, chave, { origem: 'manual' });
+  $('valorExibido').textContent = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const qrContainer = document.getElementById('qrcode');
+  qrContainer.innerHTML = '';
+  if (typeof QRCode === 'undefined') {
+    $('recebStatus').textContent = 'Biblioteca QR Code não carregada.';
+    $('recebStatus').style.color = '#a42020';
+    return;
+  }
+  new QRCode(qrContainer, { text: payload, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+  document.getElementById('qrcode-wrapper').style.display = 'inline-block';
+  document.getElementById('resultado').style.display = 'block';
+  $('recebStatus').textContent = '✓ QR Code gerado. Aguardando o Pix cair...';
+  $('recebStatus').style.color = '#0b6b3a';
+  const resultadoEl = document.getElementById('resultado');
+  setTimeout(() => { resultadoEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+  $('valor').value = '';
+}
+
+function mostrarFeedbackCopia(mensagem, tipo) {
+  const el = $('copyFeedback');
+  if (!el) return;
+  el.textContent = mensagem;
+  el.classList.remove('success', 'error');
+  el.classList.add(tipo === 'error' ? 'error' : 'success');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => {
+    el.textContent = '';
+    el.classList.remove('success', 'error');
+  }, 3000);
+}
+function limparFeedbackCopia() {
+  const el = $('copyFeedback');
+  if (!el) return;
+  el.textContent = '';
+  el.classList.remove('success', 'error');
+  clearTimeout(el._timer);
+}
+
+async function copiarPix() {
+  if (!payloadAtual) {
+    mostrarFeedbackCopia('Gere um QR Code primeiro.', 'error');
+    return;
+  }
+  if (copiarParaAreaDeTransferencia(payloadAtual)) {
+    mostrarFeedbackCopia('✓ Código PIX copiado!', 'success');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(payloadAtual);
+    mostrarFeedbackCopia('✓ Código PIX copiado!', 'success');
+  } catch (e) {
+    mostrarFeedbackCopia('Não foi possível copiar. Tente novamente.', 'error');
+  }
+}
+async function compartilharPix() {
+  if (!payloadAtual) {
+    mostrarFeedbackCopia('Gere um QR Code primeiro.', 'error');
+    return;
+  }
+  if (navigator.share) {
+    try {
+      await navigator.share({ text: payloadAtual });
+      return;
+    } catch (e) {}
+  }
+  await copiarPix();
+}
+
+/* ============================================================
+   VERSÃO / CACHE
+   ============================================================ */
+async function verificarAtualizacao(silencioso, botao) {
+  const textoOriginal = '🔄 Verificar atualização';
+  if (botao) {
+    botao.disabled = true;
+    botao.textContent = '⏳ Verificando...';
+  }
+  try {
+    const url = window.location.pathname + '?_t=' + Date.now();
+    const resp = await fetch(url, { cache: 'no-store' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const html = await resp.text();
+    const match = html.match(/PIX_APP_VERSION\s*=\s*"([^"]+)"/);
+    if (!match) throw new Error('Versão não encontrada no servidor');
+    const versaoServidor = match[1];
+    const versaoLocal = window.PIX_APP_VERSION || '?';
+    if (versaoServidor !== versaoLocal) {
+      const ok = await mostrarConfirm(
+        'Nova versão disponível',
+        'Versão atual: ' + versaoLocal + '\nNova versão: ' + versaoServidor + '\n\nRecarregar agora?'
+      );
+      if (ok) forcarRecarregar();
+    } else if (!silencioso) {
+      await mostrarAlerta('Já atualizado', '✅ Você já está na versão mais recente (' + versaoLocal + ').');
+    }
+  } catch (e) {
+    if (!silencioso) await mostrarAlerta('Falha na verificação', 'Não foi possível verificar atualizações.\n\n' + e.message);
+  } finally {
+    if (botao) {
+      botao.disabled = false;
+      botao.textContent = textoOriginal;
+    }
+  }
+}
+function forcarRecarregar() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('_v', Date.now().toString());
+  window.location.replace(url.toString());
+}
+(function limparServiceWorkers() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    if (regs.length === 0) return;
+    Promise.all(regs.map(r => r.unregister())).then(() => {
+      if ('caches' in window) {
+        caches.keys().then(names => Promise.all(names.map(n => caches.delete(n))));
+      }
+    });
+  }).catch(() => {});
+})();
+
+/* ============================================================
+   PARSERS MULTI-BANCO (do pix.html)
+   Embutidos: BB, Mercado Pago, Sicoob, XP, Nubank
+   Aprendidos: salvos em localStorage
+   ============================================================ */
+function normalizarValor(v) {
+  if (!v) return '0,00';
+  if (/^\d+$/.test(v)) return v + ',00';
+  return v;
+}
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const parsers = {
+  bb: function(linha) {
+    const nome  = linha.match(/!\s*([^,]+),\s*CPF\/CNPJ/);
+    const valor = linha.match(/R\$\s*(\d+(?:\.\d{3})*(?:,\d{1,2})?)/);
+    if (!nome || !valor) return null;
+    const documento   = linha.match(/CPF\/CNPJ\s*([\d.*\/-]+)/);
+    const instituicao = linha.match(/Instituição\s*(.+?),\s*para/);
+    const hora        = linha.match(/às\s*([\d:]+)/);
+    return {
+      nome: nome[1].trim(),
+      documento: documento ? documento[1].replace(/[.,;:]+$/, '').trim() : '—',
+      valor: normalizarValor(valor[1].trim()),
+      instituicao: instituicao ? instituicao[1].trim() : '—',
+      hora: hora ? hora[1] : ''
+    };
+  },
+  mercadoPago: function(linha) {
+    const valor = linha.match(/Você recebeu\s+R\$\s*(\d+(?:\.\d{3})*(?:,\d{1,2})?)/);
+    const nome  = linha.match(/que\s+([\s\S]+?)\s+te transferiu/);
+    if (!valor || !nome) return null;
+    return { nome: nome[1].trim(), documento: '—', valor: normalizarValor(valor[1].trim()), instituicao: 'Mercado Pago', hora: '' };
+  },
+  sicoob: function(linha) {
+    if (!/recebido\s+de/i.test(linha)) return null;
+    const valor = linha.match(/R\$\s*(\d+(?:\.\d{3})*(?:,\d{1,2})?)/i);
+    const nome  = linha.match(/recebido\s+de\s+([^,]+?)(?:,\s*CPF|\.\s*$|$)/i);
+    if (!valor || !nome) return null;
+    const documento = linha.match(/CPF[:\s]+([\d.*\/-]+)/i);
+    return { nome: nome[1].trim(), documento: documento ? documento[1].replace(/[.,;:]+$/, '').trim() : '—', valor: normalizarValor(valor[1].trim()), instituicao: 'Sicoob', hora: '' };
+  },
+  xp: function(linha) {
+    const nome  = linha.match(/Você recebeu um Pix de\s+([^,]+),\s*CPF/i);
+    const valor = linha.match(/de\s+R\$\s*(\d+(?:\.\d{3})*(?:,\d{1,2})?)/i);
+    if (!nome || !valor) return null;
+    const documento = linha.match(/CPF:?\s*([\d.*\/-]+)/i);
+    return { nome: nome[1].trim(), documento: documento ? documento[1].replace(/[.,;:]+$/, '').trim() : '—', valor: normalizarValor(valor[1].trim()), instituicao: 'Banco XP', hora: '' };
+  },
+  nubank: function(linha) {
+    if (!/transfer[êe]ncia\s+recebida|recebemos\s+sua\s+transfer[êe]ncia/i.test(linha)) return null;
+    const valor = linha.match(/transfer[êe]ncia\s+de\s+R\$\s*(\d+(?:\.\d{3})*(?:,\d{1,2})?)/i);
+    if (!valor) return null;
+    let nome = '—';
+    const mNome = linha.match(/(?:de|do|da)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+(?:de|da|do|dos|das|e)?\s*[A-ZÀ-Ú][a-zà-ú]+)+)(?:\s+via|\s+para|\s*$)/);
+    if (mNome) nome = mNome[1].trim();
+    return {
+      nome: nome,
+      documento: '—',
+      valor: normalizarValor(valor[1].trim()),
+      instituicao: 'Nubank S/A',
+      hora: ''
+    };
+  }
+};
+
+/* --- Parsers aprendidos --- */
+const CHAVE_LOCALSTORAGE_BANCOS = 'pixBancosAprendidos';
+const CHAVE_LOCALSTORAGE_ULTIMO_BACKUP = 'pixUltimoBackup';
+const VERSAO_BACKUP = '2.0';
+
+function getBancosAprendidos() {
+  try { return JSON.parse(localStorage.getItem(CHAVE_LOCALSTORAGE_BANCOS) || '[]'); }
+  catch (e) { return []; }
+}
+function salvarBancosAprendidos(bancos) {
+  localStorage.setItem(CHAVE_LOCALSTORAGE_BANCOS, JSON.stringify(bancos));
+}
+function construirParser(banco) {
+  return function(linha) {
+    try {
+      const mValor = linha.match(new RegExp(banco.regexValor, 'i'));
+      if (!mValor) return null;
+      let nome = '—';
+      if (banco.regexNome) {
+        const mNome = linha.match(new RegExp(banco.regexNome, 'i'));
+        if (mNome) nome = mNome[1].trim();
+      }
+      const mDoc = banco.regexDoc ? linha.match(new RegExp(banco.regexDoc, 'i')) : null;
+      return {
+        nome: nome,
+        documento: mDoc ? mDoc[1].replace(/[.,;:]+$/, '').trim() : '—',
+        valor: normalizarValor(mValor[1].trim()),
+        instituicao: banco.instituicao,
+        hora: ''
+      };
+    } catch (e) { return null; }
+  };
+}
+
+let parsersAprendidos = [];
+function carregarParsersAprendidos() {
+  parsersAprendidos = [];
+  const bancos = getBancosAprendidos();
+  bancos.slice().reverse().forEach(banco => {
+    parsersAprendidos.push(construirParser(banco));
+  });
+}
+
+function extrairDados(linha) {
+  try {
+    const d = JSON.parse(linha);
+    if (d.nome && !d.nome.includes('[lv=') && !d.nome.includes('{v=')) return d;
+  } catch (e) { }
+  for (const banco in parsers) {
+    const d = parsers[banco](linha);
+    if (d) return d;
+  }
+  for (const parser of parsersAprendidos) {
+    const d = parser(linha);
+    if (d) return d;
+  }
+  return null;
+}
+
+/* ============================================================
+   LEITURA DO JSON (preparado para APK via PixBridge)
+   ============================================================ */
+async function lerArquivoJson() {
+  // Se estiver dentro do APK (ponte futura), usa
+  if (window.PixBridge && typeof PixBridge.lerJson === 'function') {
+    return PixBridge.lerJson();
+  }
+  // Caso contrário, fetch normal
+  const resp = await fetch(PIX3_CONFIG.ARQUIVO_JSON + '?t=' + Date.now(), { cache: 'no-store' });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return await resp.text();
+}
+
+/* ============================================================
+   MONITOR DE PIX
+   ============================================================ */
+let leituras = 0;
+let numeroLinhasVisto = 0;
+let primeiraLeitura = true;
+let monitorAtivo = false;
+let timeoutModalPix = null;
+
+const monitorDot = document.getElementById('monitorDot');
+const monitorTitulo = document.getElementById('monitorTitulo');
+const monitorDetalhe = document.getElementById('monitorDetalhe');
+
+function atualizarMonitor(estado, titulo, detalhe) {
+  if (!monitorDot) return;
+  monitorDot.className = 'dot dot-' + estado;
+  monitorTitulo.textContent = titulo;
+  monitorDetalhe.textContent = detalhe;
+}
+
+async function verificarPix() {
+  try {
+    const texto = await lerArquivoJson();
+    leituras++;
+    monitorAtivo = true;
+    atualizarMonitor('verde', 'Monitorando Pix...', 'Última leitura: ' + new Date().toLocaleTimeString('pt-BR'));
+
+    const linhas = texto.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!linhas.length) return;
+
+    // Primeira leitura: só memoriza, sem mostrar modal
+    if (primeiraLeitura) {
+      primeiraLeitura = false;
+      numeroLinhasVisto = linhas.length;
+      return;
+    }
+
+    // Linha nova? Processa
+    if (linhas.length > numeroLinhasVisto) {
+      const novasLinhas = linhas.slice(numeroLinhasVisto);
+      numeroLinhasVisto = linhas.length;
+
+      // Processa a última nova (uma por vez, na ordem)
+      const ultima = novasLinhas[novasLinhas.length - 1];
+      const dados = extrairDados(ultima);
+      if (dados) {
+        processarPixRecebido(dados);
+      } else {
+        atualizarMonitor('vermelho', 'Linha nova sem dados', 'Formato não reconhecido. Ensine o banco?');
+        console.log('[PIX3] Linha nova sem dados:', ultima);
+      }
+    }
+  } catch (e) {
+    monitorAtivo = false;
+    atualizarMonitor('vermelho', 'Monitor com erro', e.message);
+    console.warn('[PIX3] Erro no monitor:', e);
+  }
+}
+
+/* ============================================================
+   INTEGRAÇÃO: casar Pix com cobrança pendente + mostrar modal
+   ============================================================ */
+function valorNumerico(str) {
+  // "0,50" -> 0.50
+  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function processarPixRecebido(dados) {
+  const valorRecebido = valorNumerico(dados.valor);
+
+  // Procura cobrança pendente com o mesmo valor nos últimos N minutos
+  const lista = getRecebimentos();
+  const agora = Date.now();
+  const janelaMs = PIX3_CONFIG.JANELA_CASAMENTO_MIN * 60 * 1000;
+
+  let casou = null;
+  for (const item of lista) {
+    if (item.status !== 'pendente') continue;
+    if (Math.abs(item.valor - valorRecebido) > 0.01) continue;
+    // Verifica a janela de tempo
+    const dataItem = new Date(item.data + 'T' + (item.hora || '00:00:00')).getTime();
+    if (isNaN(dataItem)) continue;
+    if (agora - dataItem > janelaMs) continue;
+    casou = item;
+    break;
+  }
+
+  let statusCasamento, tipoStatus;
+  if (casou) {
+    // Marca como pago e complementa com dados do pagador
+    casou.status = 'pago';
+    casou.pagador = dados.nome || '';
+    casou.banco = dados.instituicao || '';
+    casou.origem = 'auto';
+    if (dados.documento && dados.documento !== '—') {
+      casou.documentoPagador = dados.documento;
+    }
+    salvarRecebimentos(lista);
+    statusCasamento = `✅ Cobrança de R$ ${casou.valor.toFixed(2).replace('.', ',')} confirmada automaticamente!`;
+    tipoStatus = 'ok';
+  } else {
+    // Adiciona como avulso
+    adicionarRecebimento(valorRecebido, '', '***', '', {
+      status: 'pago',
+      pagador: dados.nome || '',
+      banco: dados.instituicao || '',
+      origem: 'avulso'
+    });
+    statusCasamento = '📝 Recebimento avulso adicionado ao histórico (sem cobrança pendente correspondente).';
+    tipoStatus = 'avulso';
+  }
+
+  // Atualiza o painel de status
+  atualizarMonitor('verde',
+    `💸 Pix recebido: R$ ${dados.valor} (${dados.instituicao || 'Banco'})`,
+    `${dados.nome || 'Sem nome'} • ${new Date().toLocaleTimeString('pt-BR')}`);
+
+  // Mostra o modal
+  mostrarModalPix(dados, statusCasamento, tipoStatus);
+
+  // Atualiza a lista de recebimentos (se o modal de relatórios estiver aberto)
+  if ($('modalRelatorios').classList.contains('active')) {
+    renderizarLista(getRecebimentos());
+  }
+}
+
+function mostrarModalPix(dados, statusCasamento, tipoStatus) {
+  $('pixHora').textContent = dados.hora ? 'às ' + dados.hora : '';
+  $('pixValor').textContent = 'R$ ' + (dados.valor || '0,00');
+  $('pixNome').textContent = dados.nome || '—';
+  $('pixDoc').textContent = dados.documento || '—';
+  $('pixBanco').textContent = dados.instituicao || '—';
+
+  const statusEl = $('pixStatusCasamento');
+  statusEl.className = 'pix-status-casamento ' + tipoStatus;
+  statusEl.textContent = statusCasamento;
+
+  $('modalPixRecebido').classList.add('active');
+
+  // Auto-fechar após N ms
+  clearTimeout(timeoutModalPix);
+  timeoutModalPix = setTimeout(() => {
+    fecharModalPixRecebido();
+  }, PIX3_CONFIG.AUTO_FECHAR_MODAL);
+}
+
+function fecharModalPixRecebido() {
+  clearTimeout(timeoutModalPix);
+  $('modalPixRecebido').classList.remove('active');
+}
+
+/* ============================================================
+   APRENDER NOVO BANCO (do pix.html)
+   ============================================================ */
+let indiceEditando = null;
+
+function atualizarModoModal() {
+  const titulo = document.getElementById('tituloModalAprender');
+  const subtitulo = document.getElementById('subtituloModalAprender');
+  const banner = document.getElementById('bannerEdicao');
+  const btnSalvar = document.getElementById('btnSalvarParser');
+  if (indiceEditando !== null) {
+    titulo.textContent = '✏️ Editando parser';
+    subtitulo.textContent = 'Ajuste os campos e clique em "Atualizar parser". O parser antigo será substituído.';
+    banner.classList.add('ativo');
+    btnSalvar.textContent = '✏️ Atualizar parser';
+    btnSalvar.style.background = '#00795f';
+  } else {
+    titulo.textContent = '🧠 Aprender novo banco';
+    subtitulo.textContent = 'Cole uma notificação real de Pix. Vou tentar extrair os campos automaticamente. Você só revisa e salva.';
+    banner.classList.remove('ativo');
+    btnSalvar.textContent = '💾 Salvar parser';
+    btnSalvar.style.background = '#0b6b3a';
+  }
+}
+
+function abrirAprenderBanco() {
+  indiceEditando = null;
+  document.getElementById('inputNotificacao').value = '';
+  document.getElementById('inputBanco').value = '';
+  document.getElementById('inputNomeRemetente').value = '';
+  document.getElementById('previewAprender').innerHTML = '';
+  atualizarModoModal();
+  renderizarListaAprendidos();
+  atualizarInfoBancos();
+  document.getElementById('modalAprender').classList.add('active');
+}
+function fecharAprender() {
+  indiceEditando = null;
+  document.getElementById('modalAprender').classList.remove('active');
+}
+function cancelarEdicao() {
+  indiceEditando = null;
+  document.getElementById('inputNotificacao').value = '';
+  document.getElementById('inputBanco').value = '';
+  document.getElementById('inputNomeRemetente').value = '';
+  document.getElementById('previewAprender').innerHTML = '';
+  atualizarModoModal();
+}
+
+function editarBancoAprendido(idx) {
+  const bancos = getBancosAprendidos();
+  if (idx < 0 || idx >= bancos.length) return;
+  const b = bancos[idx];
+  indiceEditando = idx;
+  document.getElementById('inputBanco').value = b.instituicao;
+  if (b.notificacaoExemplo) {
+    document.getElementById('inputNotificacao').value = b.notificacaoExemplo;
+    let nomeRemetente = '';
+    if (b.regexNome) {
+      try {
+        const m = b.notificacaoExemplo.match(new RegExp(b.regexNome, 'i'));
+        if (m) nomeRemetente = m[1];
+      } catch (e) {}
+    }
+    document.getElementById('inputNomeRemetente').value = nomeRemetente;
+    document.getElementById('previewAprender').innerHTML = '';
+    document.getElementById('previewAprender').className = 'previewAprender';
+  } else {
+    document.getElementById('inputNotificacao').value = '';
+    document.getElementById('inputNomeRemetente').value = '';
+    document.getElementById('previewAprender').className = 'previewAprender erro';
+    document.getElementById('previewAprender').innerHTML = '⚠️ Este parser foi criado antes da função de edição e não tem a notificação de exemplo salva.<br><br>Cole novamente a notificação acima para poder atualizar. Os dados do banco já estão preenchidos.';
+  }
+  atualizarModoModal();
+  const modal = document.querySelector('#modalAprender .modal');
+  if (modal) modal.scrollTop = 0;
+  setTimeout(() => { document.getElementById('inputNotificacao').focus(); }, 100);
+}
+
+function autoDetectarNome(texto) {
+  const estrategias = [
+    /Pix\s+de\s+([^,]+?),\s*CPF/i,
+    /recebido\s+de\s+([^,]+?)(?:,\s*CPF|\.\s*$)/i,
+    /que\s+([^,]+?)\s+te transferiu/i,
+    /recebeu\s+um\s+Pix\s+de\s+([^,]+?)(?:,\s*CPF|\.\s*$)/i,
+    /([A-ZÀ-Ú][a-zà-ú]+(?:\s+(?:de|da|do|dos|das|e)?\s*[A-ZÀ-Ú][a-zà-ú]+)+)\s+(?:te\s+)?(?:enviou|transferiu|mandou)/,
+    /(?:de|do|da)\s+([A-ZÀ-Ú][a-zà-ú]+(?:\s+(?:de|da|do|dos|das|e)?\s*[A-ZÀ-Ú][a-zà-ú]+)+)/,
+  ];
+  for (const re of estrategias) {
+    const m = texto.match(re);
+    if (m) return m[1].trim();
+  }
+  return null;
+}
+
+function gerarRegexNome(texto, nome) {
+  const idx = texto.indexOf(nome);
+  if (idx === -1) return null;
+  const antes = texto.substring(Math.max(0, idx - 40), idx);
+  const depois = texto.substring(idx + nome.length, Math.min(texto.length, idx + nome.length + 30));
+  const ancorasAntes = [
+    'recebeu um Pix de', 'Pix recebido de', 'pix recebido de',
+    'recebido de', 'recebeu de', 'Pix de', 'pix de',
+    'transferência de', 'transferiu', 'de', 'do', 'da', ':'
+  ];
+  let ancoraAntes = '';
+  for (const a of ancorasAntes) {
+    const re = new RegExp(escapeRegex(a) + '\\s*$', 'i');
+    if (re.test(antes)) { ancoraAntes = a; break; }
+  }
+  const ancorasDepois = [
+    ', CPF:', ', CPF/CNPJ', ', CPF', ', CNPJ',
+    ' CPF:', ' CPF', ' de R$', ' de r$', '.', ','
+  ];
+  let ancoraDepois = '';
+  for (const a of ancorasDepois) {
+    if (depois.toLowerCase().startsWith(a.toLowerCase())) { ancoraDepois = a; break; }
+  }
+  const escAntes = ancoraAntes ? escapeRegex(ancoraAntes) + '\\s*' : '';
+  const escDepois = ancoraDepois ? '\\s*' + escapeRegex(ancoraDepois) : '';
+  return escAntes + '(.+?)' + escDepois;
+}
+
+function testarAprendizado() {
+  const texto = document.getElementById('inputNotificacao').value.trim();
+  const banco = document.getElementById('inputBanco').value.trim();
+  let nome = document.getElementById('inputNomeRemetente').value.trim();
+  const preview = document.getElementById('previewAprender');
+  if (!texto) {
+    preview.className = 'previewAprender erro';
+    preview.innerHTML = '⚠️ Cole a notificação primeiro.';
+    return;
+  }
+  if (!nome) {
+    const auto = autoDetectarNome(texto);
+    if (auto) { nome = auto; document.getElementById('inputNomeRemetente').value = auto; }
+  }
+  if (nome && !texto.includes(nome)) {
+    preview.className = 'previewAprender erro';
+    preview.innerHTML = '⚠️ O nome "' + nome + '" não aparece na notificação. Verifique.';
+    return;
+  }
+  const regexValor = 'R\\$\\s*(\\d+(?:\\.\\d{3})*(?:,\\d{1,2})?)';
+  const regexDoc = '(?:CPF|CNPJ)[:\\s\\/]*([\\d.*\\/-]+)';
+  const regexNome = nome ? gerarRegexNome(texto, nome) : null;
+  const testParser = construirParser({
+    instituicao: banco || 'Banco (sem nome)',
+    regexNome: regexNome,
+    regexValor: regexValor,
+    regexDoc: regexDoc
+  });
+  const resultado = testParser(texto);
+  if (!resultado) {
+    preview.className = 'previewAprender erro';
+    preview.innerHTML = '❌ Não consegui extrair os dados. Verifique a notificação.';
+    return;
+  }
+  preview.className = 'previewAprender ok';
+  preview.innerHTML = `
+    <div style="font-weight:700; margin-bottom:8px;">✅ Extração funcionou!</div>
+    <div class="campo"><span>Nome:</span><strong>${resultado.nome}</strong></div>
+    <div class="campo"><span>Valor:</span><strong>R$ ${resultado.valor}</strong></div>
+    <div class="campo"><span>Documento:</span><strong>${resultado.documento}</strong></div>
+    <div class="campo"><span>Banco:</span><strong>${resultado.instituicao}</strong></div>
+  `;
+}
+
+function salvarNovoBanco() {
+  const texto = document.getElementById('inputNotificacao').value.trim();
+  const banco = document.getElementById('inputBanco').value.trim();
+  let nome = document.getElementById('inputNomeRemetente').value.trim();
+  const preview = document.getElementById('previewAprender');
+  if (!texto) { alert('Cole a notificação primeiro.'); return; }
+  if (!banco) { alert('Digite o nome do banco.'); return; }
+  if (!nome) {
+    const auto = autoDetectarNome(texto);
+    if (auto) { nome = auto; document.getElementById('inputNomeRemetente').value = auto; }
+  }
+  if (nome && !texto.includes(nome)) {
+    alert('O nome "' + nome + '" não aparece na notificação. Corrija.');
+    return;
+  }
+  const regexValor = 'R\\$\\s*(\\d+(?:\\.\\d{3})*(?:,\\d{1,2})?)';
+  const regexDoc = '(?:CPF|CNPJ)[:\\s\\/]*([\\d.*\\/-]+)';
+  const regexNome = nome ? gerarRegexNome(texto, nome) : null;
+  const novoBanco = {
+    instituicao: banco,
+    regexNome: regexNome,
+    regexValor: regexValor,
+    regexDoc: regexDoc,
+    notificacaoExemplo: texto
+  };
+  const testParser = construirParser(novoBanco);
+  const resultado = testParser(texto);
+  if (!resultado) { alert('A extração falhou. Ajuste os campos e tente novamente.'); return; }
+  const bancos = getBancosAprendidos();
+  if (indiceEditando !== null) {
+    if (indiceEditando < 0 || indiceEditando >= bancos.length) {
+      alert('Erro: banco em edição não existe mais. Recarregue a lista.');
+      indiceEditando = null;
+      atualizarModoModal();
+      return;
+    }
+    const nomeAntigo = bancos[indiceEditando].instituicao;
+    bancos[indiceEditando] = novoBanco;
+    indiceEditando = null;
+    salvarBancosAprendidos(bancos);
+    carregarParsersAprendidos();
+    renderizarListaAprendidos();
+    atualizarModoModal();
+    preview.className = 'previewAprender ok';
+    preview.innerHTML = `✅ Parser "<strong>${banco}</strong>" atualizado!${nomeAntigo !== banco ? ` (antes: ${nomeAntigo})` : ''}`;
+  } else {
+    const existente = bancos.findIndex(b => b.instituicao.toLowerCase() === banco.toLowerCase());
+    if (existente >= 0) {
+      if (!confirm('Já existe um banco "' + banco + '". Substituir?')) return;
+      bancos[existente] = novoBanco;
+    } else {
+      bancos.push(novoBanco);
+    }
+    salvarBancosAprendidos(bancos);
+    carregarParsersAprendidos();
+    renderizarListaAprendidos();
+    preview.className = 'previewAprender ok';
+    preview.innerHTML = `✅ Banco "<strong>${banco}</strong>" salvo! Já vai funcionar nos próximos Pix.`;
+  }
+  document.getElementById('inputNotificacao').value = '';
+  document.getElementById('inputBanco').value = '';
+  document.getElementById('inputNomeRemetente').value = '';
+  setTimeout(atualizarInfoBancos, 100);
+}
+
+function renderizarListaAprendidos() {
+  const div = document.getElementById('listaAprendidos');
+  const bancos = getBancosAprendidos();
+  if (!bancos.length) {
+    div.innerHTML = '<div class="vazio">Nenhum banco aprendido ainda.</div>';
+    return;
+  }
+  let html = '<div style="font-weight:700; font-size:12px; color:#6b7280; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Bancos aprendidos:</div><ul class="listaAprendidos">';
+  bancos.forEach((b, idx) => {
+    const estaEditando = (indiceEditando === idx);
+    const estiloItem = estaEditando ? ' style="border:2px solid #f59e0b; background:#fffbeb;"' : '';
+    html += `<li${estiloItem}>
+      <span class="nomeItem">🏦 ${b.instituicao}${estaEditando ? ' (editando)' : ''}</span>
+      <div class="acoes-lista">
+        <button class="btn-edit" onclick="editarBancoAprendido(${idx})" title="Editar este parser">✏️</button>
+        <button class="btn-del" onclick="removerBancoAprendido(${idx})" title="Remover este parser">🗑️</button>
+      </div>
+    </li>`;
+  });
+  html += '</ul>';
+  div.innerHTML = html;
+}
+
+function removerBancoAprendido(idx) {
+  const bancos = getBancosAprendidos();
+  if (!confirm('Remover "' + bancos[idx].instituicao + '" da lista de bancos aprendidos?')) return;
+  if (indiceEditando === idx) cancelarEdicao();
+  else if (indiceEditando !== null && indiceEditando > idx) indiceEditando--;
+  bancos.splice(idx, 1);
+  salvarBancosAprendidos(bancos);
+  carregarParsersAprendidos();
+  renderizarListaAprendidos();
+  atualizarInfoBancos();
+}
+
+function formatarDataBackup(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const ano = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${dia}/${mes}/${ano} ${hh}:${mm}`;
+  } catch (e) { return '—'; }
+}
+
+function atualizarInfoBancos() {
+  const qtdEmbutidos = Object.keys(parsers).length;
+  const qtdAprendidos = getBancosAprendidos().length;
+  const ultimoBackup = localStorage.getItem(CHAVE_LOCALSTORAGE_ULTIMO_BACKUP);
+  const infoModal = document.getElementById('infoBackupModal');
+  if (infoModal) {
+    let html = `<strong>${qtdEmbutidos}</strong> embutidos + <strong>${qtdAprendidos}</strong> aprendidos.<br>`;
+    if (ultimoBackup) {
+      html += `<span class="ok">✓ Último backup: ${formatarDataBackup(ultimoBackup)}</span>`;
+    } else if (qtdAprendidos > 0) {
+      html += `<span class="alerta">⚠️ Nenhum backup realizado. Salve agora para não perder seus bancos.</span>`;
+    } else {
+      html += `<span>Nenhum banco aprendido ainda.</span>`;
+    }
+    infoModal.innerHTML = html;
+  }
+}
+
+function exportarParsers() {
+  const bancos = getBancosAprendidos();
+  if (bancos.length === 0) {
+    if (!confirm('Você não tem nenhum banco aprendido para salvar.\n\nOs 5 bancos embutidos (BB, Mercado Pago, Sicoob, XP, Nubank) estão no código do app.\n\nDeseja salvar mesmo assim (arquivo vazio)?')) return;
+  }
+  const dados = {
+    app: 'pix3-parsers',
+    versao: VERSAO_BACKUP,
+    data: new Date().toISOString(),
+    totalBancos: bancos.length,
+    bancosAprendidos: bancos
+  };
+  const json = JSON.stringify(dados, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const hoje = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `pix3-parsers-${hoje}-${bancos.length}bancos.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  localStorage.setItem(CHAVE_LOCALSTORAGE_ULTIMO_BACKUP, new Date().toISOString());
+  atualizarInfoBancos();
+  setTimeout(() => {
+    alert(`✅ Backup salvo!\n\n${bancos.length} banco(s) aprendido(s) exportado(s).\n\nO arquivo foi baixado para a pasta de Downloads do celular.`);
+  }, 300);
+}
+function abrirSeletorArquivo() { document.getElementById('inputArquivoParsers').click(); }
+function importarParsers(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if (!dados || typeof dados !== 'object') throw new Error('Arquivo não é um JSON válido.');
+      if (!Array.isArray(dados.bancosAprendidos)) throw new Error('Arquivo não contém a lista "bancosAprendidos".');
+      const novosBancos = dados.bancosAprendidos;
+      novosBancos.forEach((b, i) => {
+        if (!b.instituicao) throw new Error(`Parser ${i+1}: falta o campo "instituicao".`);
+        if (!b.regexValor) throw new Error(`Parser ${i+1}: falta o campo "regexValor".`);
+      });
+      if (novosBancos.length === 0) { alert('⚠️ O arquivo não contém nenhum banco para importar.'); return; }
+      const listaNomes = novosBancos.map(b => '• ' + b.instituicao).join('\n');
+      const atuais = getBancosAprendidos();
+      const substituir = confirm(
+        `📂 Arquivo válido!\n\nContém ${novosBancos.length} banco(s):\n${listaNomes}\n\n` +
+        `Você tem ${atuais.length} banco(s) aprendido(s) atualmente.\n\n` +
+        `✅ OK = SUBSTITUIR todos.\n❌ CANCELAR = MESCLAR (manter atuais + adicionar/atualizar).`
+      );
+      let resultado;
+      if (substituir) {
+        resultado = novosBancos;
+      } else {
+        const mapa = new Map();
+        atuais.forEach(b => mapa.set(b.instituicao.toLowerCase(), b));
+        novosBancos.forEach(b => mapa.set(b.instituicao.toLowerCase(), b));
+        resultado = Array.from(mapa.values());
+      }
+      salvarBancosAprendidos(resultado);
+      carregarParsersAprendidos();
+      renderizarListaAprendidos();
+      atualizarInfoBancos();
+      alert(`✅ Backup restaurado!\n\nModo: ${substituir ? 'substituído' : 'mesclado'}\nBancos aprendidos agora: ${resultado.length}`);
+    } catch (err) {
+      alert('❌ Erro ao importar:\n\n' + err.message);
+    }
+  };
+  reader.onerror = function() { alert('❌ Não foi possível ler o arquivo. Tente novamente.'); };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ============================================================
+   SIMULAR PIX DE TESTE
+   ============================================================ */
+async function simularPixTeste() {
+  const opcoes = ['BB', 'Mercado Pago', 'Sicoob', 'XP', 'Nubank'];
+  const banco = prompt('Qual banco simular?\n\nOpções: ' + opcoes.join(', '), 'BB');
+  if (!banco) return;
+  const valor = prompt('Valor do Pix (ex.: 10,50)', '10,50');
+  if (!valor) return;
+
+  // Monta a notificação fake no formato do banco escolhido
+  let notificacao = '';
+  const bancoNorm = banco.toLowerCase();
+  if (bancoNorm.includes('bb') || bancoNorm.includes('banco do brasil')) {
+    notificacao = `Pix Recebido: BB: Que ótimo! Teste da Silva, CPF/CNPJ ***.000.000-** , enviou um Pix de R$ ${valor}, da Instituição MERCADO PAGO IP LTDA, para sua conta Corrente às ${new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}.`;
+  } else if (bancoNorm.includes('mercado') || bancoNorm.includes('mp')) {
+    notificacao = `Você recebeu R$ ${valor} | O valor que Teste da Silva te transferiu via Pix já está rendendo.`;
+  } else if (bancoNorm.includes('sicoob')) {
+    notificacao = `Pix recebido! | Pix de R$${valor} recebido de Teste da Silva, CPF  ***.000.000-**.`;
+  } else if (bancoNorm.includes('xp')) {
+    notificacao = `Pix recebido | Você recebeu um Pix de Teste da Silva, CPF: ***.000.000-** de R$ ${valor}.`;
+  } else if (bancoNorm.includes('nubank') || bancoNorm.includes('nu ')) {
+    notificacao = `Transferência recebida | Recebemos sua transferência de R$ ${valor}.`;
+  } else {
+    alert('Banco não reconhecido. Use BB, Mercado Pago, Sicoob, XP ou Nubank.');
+    return;
+  }
+
+  // Extrai os dados da notificação fake
+  const dados = extrairDados(notificacao);
+  if (!dados) {
+    alert('Não foi possível extrair dados da notificação simulada. Verifique o valor.');
+    return;
+  }
+
+  // Processa como se fosse um Pix real
+  processarPixRecebido(dados);
+  atualizarMonitor('verde', '🧪 Pix de TESTE recebido',
+    `${dados.instituicao} • R$ ${dados.valor} • (simulado)`);
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+function iniciar() {
+  document.getElementById('qrcode-wrapper').style.display = 'none';
+  const config = getConfig();
+  atualizarCabecalho(config.header || 'PIX3 — Recebimentos');
+  atualizarResumo();
+  document.getElementById('resultado').style.display = 'none';
+  const hoje = new Date().toISOString().slice(0, 10);
+  document.getElementById('filtroData').value = hoje;
+  document.getElementById('filtroInicio').value = hoje;
+  document.getElementById('filtroFim').value = hoje;
+  const lista = getRecebimentos();
+  renderizarLista(lista);
+  resetarEstadoSalvar();
+  setupSaveListeners();
+  limparFeedbackCopia();
+  carregarParsersAprendidos();
+  atualizarInfoBancos();
+  const elVersao = document.getElementById('versaoAtual');
+  if (elVersao) elVersao.textContent = window.PIX_APP_VERSION || PIX3_CONFIG.VERSAO;
+  setTimeout(() => verificarAtualizacao(true), 3000);
+
+  // Inicia o monitor
+  atualizarMonitor('amarelo', 'Iniciando monitor...', 'Aguardando primeira leitura');
+  verificarPix();
+  setInterval(verificarPix, PIX3_CONFIG.INTERVALO_MONITOR);
+}
+iniciar();
+
+/* ============================================================
+   EXPOSIÇÃO GLOBAL (para onclick dos botões)
+   ============================================================ */
+window.marcarComoPago = marcarComoPago;
+window.excluirRecebimento = excluirRecebimento;
+window.filtrarPorDia = filtrarPorDia;
+window.filtrarPorPeriodo = filtrarPorPeriodo;
+window.limparFiltros = limparFiltros;
+window.abrirModalRelatorios = abrirModalRelatorios;
+window.fecharModalRelatorios = fecharModalRelatorios;
+window.abrirGerenciar = abrirGerenciar;
+window.fecharModalGerenciar = fecharModalGerenciar;
+window.abrirAlterarSenha = abrirAlterarSenha;
+window.fecharModalAlterarSenha = fecharModalAlterarSenha;
+window.alterarSenha = alterarSenha;
+window.adicionarChave = adicionarChave;
+window.selecionarChave = selecionarChave;
+window.editarChave = editarChave;
+window.excluirChave = excluirChave;
+window.salvarConfiguracoes = salvarConfiguracoes;
+window.criarSenha = criarSenha;
+window.entrarSenha = entrarSenha;
+window.fecharModalCriarSenha = fecharModalCriarSenha;
+window.fecharModalEntrarSenha = fecharModalEntrarSenha;
+window.abrirTutorial = abrirTutorial;
+window.fecharTutorial = fecharTutorial;
+window.selecionarTipoChave = selecionarTipoChave;
+window.abrirRecuperarSenha = abrirRecuperarSenha;
+window.fecharModalRecuperarSenha = fecharModalRecuperarSenha;
+window.verificarCodigoRecuperacao = verificarCodigoRecuperacao;
+window.abrirResetTudo = abrirResetTudo;
+window.fecharModalConfirmarReset = fecharModalConfirmarReset;
+window.executarResetTotal = executarResetTotal;
+window.fecharModalNovaSenhaRecuperada = fecharModalNovaSenhaRecuperada;
+window.salvarNovaSenhaRecuperada = salvarNovaSenhaRecuperada;
+window.fecharModalMostrarRecuperacao = fecharModalMostrarRecuperacao;
+window.copiarCodigoRecuperacao = copiarCodigoRecuperacao;
+window.baixarCodigoRecuperacao = baixarCodigoRecuperacao;
+window.verificarAtualizacao = verificarAtualizacao;
+window.forcarRecarregar = forcarRecarregar;
+window.confirmarPrompt = confirmarPrompt;
+window.fecharPrompt = fecharPrompt;
+window.fecharConfirm = fecharConfirm;
+window.fecharAlerta = fecharAlerta;
+window.abrirAprenderBanco = abrirAprenderBanco;
+window.fecharAprender = fecharAprender;
+window.testarAprendizado = testarAprendizado;
+window.salvarNovoBanco = salvarNovoBanco;
+window.removerBancoAprendido = removerBancoAprendido;
+window.editarBancoAprendido = editarBancoAprendido;
+window.cancelarEdicao = cancelarEdicao;
+window.exportarParsers = exportarParsers;
+window.abrirSeletorArquivo = abrirSeletorArquivo;
+window.importarParsers = importarParsers;
+window.simularPixTeste = simularPixTeste;
+window.fecharModalPixRecebido = fecharModalPixRecebido;
+window.PIX_APP_VERSION = PIX3_CONFIG.VERSAO;
+</script>
+</body>
+</html><tag>
+  <!--Tab to edit-->
+</tag>
